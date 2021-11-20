@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use log::{debug, info};
 
 const WIN_W: f32 = 800.;
 const WIN_H: f32 = 600.;
@@ -17,6 +18,10 @@ struct ActionPointer {
 }
 
 fn main() {
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn"))
+        .format_timestamp_micros()
+        .init();
+
     App::build()
         .insert_resource(WindowDescriptor {
             title: "One-Click Ninja".to_string(),
