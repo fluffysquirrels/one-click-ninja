@@ -1,12 +1,17 @@
 use bevy::prelude::*;
 use log::{debug, info};
+use std::f32::consts::PI;
 
 const WIN_W: f32 = 800.;
 const WIN_H: f32 = 600.;
 
-enum ActionIcon {
+enum Action {
     Attack,
     Defend,
+}
+
+struct ActionIcon {
+    action: Action,
 }
 
 struct ActionPointer {
@@ -16,6 +21,10 @@ struct ActionPointer {
     /// Change of angle per second
     speed: f32,
 }
+
+struct ButtonPressed;
+struct AttackAction;
+struct DefendAction;
 
 fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn"))
@@ -29,10 +38,15 @@ fn main() {
             height: WIN_H,
             .. Default::default()
         })
+        .add_event::<ButtonPressed>()
+        .add_event::<AttackAction>()
+        .add_event::<DefendAction>()
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup.system())
         .add_startup_stage("game_setup", SystemStage::single(spawn_action_spinner.system()))
         .add_system(spin_action_pointer.system())
+        .add_system(keyboard_input.system())
+        .add_system(choose_action.system())
         .run();
 }
 
@@ -58,7 +72,7 @@ fn spawn_action_spinner(
             .. Default::default()
         },
         .. Default::default()
-    }).insert(ActionIcon::Attack);
+    }).insert(ActionIcon { action: Action::Attack });
 
     let shield_tex = asset_server.load("shield.png");
     commands.spawn_bundle(SpriteBundle {
@@ -69,7 +83,7 @@ fn spawn_action_spinner(
             .. Default::default()
         },
         .. Default::default()
-    }).insert(ActionIcon::Defend);
+    }).insert(ActionIcon { action: Action::Defend });
 
     let pointer_tex = asset_server.load("pointer.png");
     commands.spawn_bundle(SpriteBundle {
@@ -82,7 +96,7 @@ fn spawn_action_spinner(
         .. Default::default()
     }).insert(ActionPointer {
         angle: 0.,
-        speed: -std::f32::consts::PI,
+        speed: -PI,
     });
 }
 
@@ -91,7 +105,44 @@ fn spin_action_pointer(
     mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
-        ap.angle += time.delta_seconds() * ap.speed;
+        ap.angle = (ap.angle + time.delta_seconds() * ap.speed).rem_euclid(2. * PI);
         transform.rotation = Quat::from_rotation_z(ap.angle);
+        trace!("spin_action_pointer: angle deg={}", ap.angle*180./PI);
+    }
+}
+
+fn keyboard_input(
+    // Maybe debounce with Time?
+    // time: Res<Time>,
+
+    kb: Res<Input<KeyCode>>,
+    mut button_writer: EventWriter<ButtonPressed>,
+) {
+    if kb.just_pressed(KeyCode::Space) {
+        debug!("keyboard_input: emit ButtonPressed");
+        button_writer.send(ButtonPressed);
+    }
+}
+
+fn choose_action(
+    mut button_reader: EventReader<ButtonPressed>,
+    mut attack_writer: EventWriter<AttackAction>,
+    mut defend_writer: EventWriter<DefendAction>,
+    pointer: Query<&ActionPointer>,
+) {
+    if button_reader.iter().next().is_some() {
+        // Button was pressed, calculate the action.
+
+        let ptr = pointer.single().unwrap();
+        let deg = ptr.angle * 180. / PI;
+        if deg >= 0. && deg <= 20. || deg >= 340. {
+            debug!("choose_action: emit AttackAction");
+            attack_writer.send(AttackAction);
+        } else if deg >= 160. && deg <= 200. {
+            debug!("choose_action: emit DefendAction");
+            defend_writer.send(DefendAction);
+        } else {
+            // Missed all action icons, do nothing.
+        }
     }
 }
