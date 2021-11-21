@@ -4,3 +4,6 @@
 * `assets/img/shield.png` from <https://openclipart.org/detail/214816/shield-5>
 * `assets/img/sword.png` from <https://openclipart.org/detail/289643/sword-2>
 * `assets/kenney_uiaudio` from <https://www.kenney.nl/assets/ui-audio>
+* `assets/Samurai02` from
+  <https://opengameart.org/content/2d-samurai-chibi-character> or
+  <https://segelstudio.itch.io/3samuraichibi>
