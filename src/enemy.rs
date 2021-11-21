@@ -32,6 +32,9 @@ fn load_resources(
     });
 }
 
+/// This should use the sprite loaded in load_resources, but even with the
+/// system ordering using labels, the Sprites resource is not available when
+/// this spawn system runs.
 fn spawn_current_enemy(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
