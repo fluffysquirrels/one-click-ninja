@@ -5,8 +5,8 @@ pub enum Action {
     Defend,
 }
 
-pub struct AttackAction;
-pub struct DefendAction;
+pub struct PlayerAttackAction;
+pub struct PlayerDefendAction;
 
 pub struct Enemy;
 

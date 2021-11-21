@@ -3,7 +3,7 @@ mod components;
 mod enemy;
 
 use bevy::prelude::*;
-use crate::components::{AttackAction, DefendAction, EnemyAttackTime};
+use crate::components::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction};
 
 struct Sounds {
     bass: Handle<AudioSource>,
@@ -27,8 +27,8 @@ fn main() {
             height: WIN_H,
             .. Default::default()
         })
-        .add_event::<AttackAction>()
-        .add_event::<DefendAction>()
+        .add_event::<PlayerAttackAction>()
+        .add_event::<PlayerDefendAction>()
         .add_event::<EnemyAttackTime>()
         .add_plugins(DefaultPlugins)
         .add_plugin(action_spinner::Plugin)
