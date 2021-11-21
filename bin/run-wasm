@@ -3,6 +3,6 @@ set -eux;
 
 readonly repo_dir="$( cd $(dirname ${BASH_SOURCE})/..; pwd )";
 
-cd "${repo_dir}/bin";
-./build-wasm;
+cd "${repo_dir}";
+bin/build-wasm;
 basic-http-server -x "${repo_dir}/build/web/";

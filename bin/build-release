@@ -3,4 +3,5 @@ set -eux;
 
 readonly repo_dir="$( cd $(dirname ${BASH_SOURCE})/..; pwd )";
 
-cargo build --release
+cd "${repo_dir}";
+cargo build --release --features native

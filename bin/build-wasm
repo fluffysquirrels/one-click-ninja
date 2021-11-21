@@ -10,6 +10,8 @@ readonly web_target_dir="${web_dir}/target"
 readonly web_assets_dir="${web_dir}/assets"
 readonly rust_target_dir="${repo_dir}/target/wasm32-unknown-unknown"
 
+cd "${repo_dir}";
+
 # Delete old artifacts
 rm -rf "$web_target_dir"
 rm -rf "$web_assets_dir"
