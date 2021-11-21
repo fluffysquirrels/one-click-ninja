@@ -1,11 +1,12 @@
 use bevy::prelude::*;
 use crate::{
-    components::{Action, AttackAction, DefendAction, EnemyAttackTime},
+    components::{Action, EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     Sounds,
 };
 use std::f32::consts::PI;
 
 struct ActionIcon {
+    #[allow(dead_code)] // WIP.
     action: Action,
 }
 
@@ -73,7 +74,9 @@ fn spawn_action_spinner(
     });
 }
 
+const ATTACK_ANGLE: f32 = 0.;
 const DEFEND_ANGLE: f32 = PI;
+const ENEMY_ATTACK_ANGLE: f32 = 160. * PI / 180.;
 
 fn spin_action_pointer(
     time: Res<Time>,
@@ -85,15 +88,17 @@ fn spin_action_pointer(
     for (mut ap, mut transform) in pointer_pos.single_mut() {
         let old_angle = ap.angle;
         let new_angle = old_angle + time.delta_seconds() * ap.speed;
-        if old_angle > 0. && new_angle <= 0. {
+        if is_angle_hit(old_angle, new_angle, ATTACK_ANGLE) {
             trace!("play snare");
             audio.play(sounds.snare.clone());
         }
 
-        if old_angle > DEFEND_ANGLE && new_angle <= DEFEND_ANGLE {
+        if is_angle_hit(old_angle, new_angle, DEFEND_ANGLE) {
             trace!("play bass");
             audio.play(sounds.bass.clone());
+        }
 
+        if is_angle_hit(old_angle, new_angle, ENEMY_ATTACK_ANGLE) {
             enemy_attack_time_writer.send(EnemyAttackTime);
         }
 
@@ -101,6 +106,10 @@ fn spin_action_pointer(
         transform.rotation = Quat::from_rotation_z(ap.angle);
         trace!("spin_action_pointer: angle deg={}", ap.angle*180./PI);
     }
+}
+
+fn is_angle_hit(old_angle: f32, new_angle: f32, target_angle: f32) -> bool {
+    (old_angle - target_angle).signum() != (new_angle - target_angle).signum()
 }
 
 fn keyboard_input(
@@ -118,8 +127,8 @@ fn keyboard_input(
 
 fn choose_action(
     mut button_reader: EventReader<ButtonPressed>,
-    mut attack_writer: EventWriter<AttackAction>,
-    mut defend_writer: EventWriter<DefendAction>,
+    mut attack_writer: EventWriter<PlayerAttackAction>,
+    mut defend_writer: EventWriter<PlayerDefendAction>,
     pointer: Query<&ActionPointer>,
 ) {
     if button_reader.iter().next().is_some() {
@@ -128,11 +137,11 @@ fn choose_action(
         let ptr = pointer.single().unwrap();
         let deg = ptr.angle * 180. / PI;
         if deg >= 0. && deg <= 20. || deg >= 340. {
-            debug!("choose_action: emit AttackAction");
-            attack_writer.send(AttackAction);
+            debug!("choose_action: emit PlayerAttackAction");
+            attack_writer.send(PlayerAttackAction);
         } else if deg >= 160. && deg <= 200. {
-            debug!("choose_action: emit DefendAction");
-            defend_writer.send(DefendAction);
+            debug!("choose_action: emit PlayerDefendAction");
+            defend_writer.send(PlayerDefendAction);
         } else {
             // Missed all action icons, do nothing.
         }
