@@ -9,10 +9,15 @@ default = [
     "bevy/bevy_winit",
     "bevy/render",
     "bevy/png",
+    "bevy/x11",
 ]
 
 web = [
     "bevy_webgl2",
+]
+
+native = [
+    "bevy/bevy_wgpu",
 ]
 
 [dependencies]

@@ -3,4 +3,4 @@ set -eux;
 
 readonly repo_dir="$( cd $(dirname ${BASH_SOURCE})/..; pwd )";
 
-cargo run --features bevy/dynamic;
+cargo run --features bevy/dynamic,native;
