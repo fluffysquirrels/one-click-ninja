@@ -1,11 +1,16 @@
 use bevy::prelude::*;
 use crate::components::{Enemy, EnemyAttackTime};
+use std::time::Duration;
 
 pub struct Plugin;
 
 struct Sprites {
     idle: Handle<ColorMaterial>,
     attack: Handle<ColorMaterial>,
+}
+
+struct AttackAnimation {
+    until: std::time::Duration,
 }
 
 const LOAD: &'static str = "load";
@@ -15,7 +20,8 @@ impl bevy::app::Plugin for Plugin {
         app
             .add_startup_system(load_resources.system().label(LOAD))
             .add_startup_system(spawn_current_enemy.system().after(LOAD))
-            .add_system(enemy_attack.system());
+            .add_system(enemy_attack.system())
+            .add_system(attack_animation.system());
     }
 }
 
@@ -34,7 +40,7 @@ fn load_resources(
 
 /// This should use the sprite loaded in load_resources, but even with the
 /// system ordering using labels, the Sprites resource is not available when
-/// this spawn system runs.
+/// this startup system runs.
 fn spawn_current_enemy(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -55,17 +61,31 @@ fn spawn_current_enemy(
 
 fn enemy_attack(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut enemy: Query<(&Enemy, &mut Handle<ColorMaterial>)>,
+    mut enemy: Query<(Entity, &Enemy, &mut Handle<ColorMaterial>)>,
     mut attack_time_reader: EventReader<EnemyAttackTime>,
     sprites: Res<Sprites>,
+    time: Res<Time>,
 ) {
-    for (_, mut material) in enemy.single_mut() {
+    for (entity, _enemy, mut material) in enemy.single_mut() {
         if attack_time_reader.iter().next().is_some() {
+            commands.entity(entity).insert(AttackAnimation {
+                until: time.time_since_startup() + Duration::from_millis(300)
+            });
             *material = sprites.attack.clone();
-        } else {
+        }
+    }
+}
+
+fn attack_animation(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut enemy: Query<(Entity, &Enemy, &mut Handle<ColorMaterial>, &AttackAnimation)>,
+    sprites: Res<Sprites>,
+) {
+    for (entity, _enemy, mut material, anim) in enemy.single_mut() {
+        if time.time_since_startup() > anim.until {
             *material = sprites.idle.clone();
+            commands.entity(entity).remove::<AttackAnimation>();
         }
     }
 }
