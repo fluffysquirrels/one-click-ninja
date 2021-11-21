@@ -26,6 +26,11 @@ struct ButtonPressed;
 struct AttackAction;
 struct DefendAction;
 
+struct Sounds {
+    bass: Handle<AudioSource>,
+    snare: Handle<AudioSource>,
+}
+
 fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn"))
         .format_timestamp_micros()
@@ -52,10 +57,14 @@ fn main() {
 
 fn setup(
     mut commands: Commands,
-    _asset_server: Res<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut _materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.insert_resource(Sounds {
+        snare: asset_server.load("kenney_uiaudio/Audio/click1.ogg"),
+        bass: asset_server.load("kenney_uiaudio/Audio/click2.ogg"),
+    });
 }
 
 fn spawn_action_spinner(
@@ -102,10 +111,24 @@ fn spawn_action_spinner(
 
 fn spin_action_pointer(
     time: Res<Time>,
-    mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>
+    mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>,
+    audio: Res<Audio>,
+    sounds: Res<Sounds>,
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
-        ap.angle = (ap.angle + time.delta_seconds() * ap.speed).rem_euclid(2. * PI);
+        let old_angle = ap.angle;
+        let new_angle = old_angle + time.delta_seconds() * ap.speed;
+        if old_angle > 0. && new_angle <= 0. {
+            debug!("play snare");
+            audio.play(sounds.snare.clone());
+        }
+
+        if old_angle > PI && new_angle <= PI {
+            debug!("play bass");
+            audio.play(sounds.bass.clone());
+        }
+
+        ap.angle = new_angle.rem_euclid(2. * PI);
         transform.rotation = Quat::from_rotation_z(ap.angle);
         trace!("spin_action_pointer: angle deg={}", ap.angle*180./PI);
     }
