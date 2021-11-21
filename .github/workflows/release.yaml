@@ -1,0 +1,54 @@
+name: release-flow
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+  workflow_dispatch:
+
+env:
+  GAME_EXECUTABLE_NAMES: one-click-ninja:OneClickNinja
+  WASM_ZIP_NAME: one-click-ninja_wasm
+
+jobs:
+  build-web:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get tag
+        id: tag
+        uses: dawidd6/action-get-tag@v1
+        # Because it can be kicked off manually there may not be a tag
+        continue-on-error: true
+      - name: Set build suffix
+        id: suffix
+        run: |
+          echo "::set-output name=SUFFIX::$([[ "${{ steps.tag.outputs.tag }}" = "" ]] && echo $GITHUB_SHA || echo ${{ steps.tag.outputs.tag }})"
+          DATE=$(date +'%Y-%m-%d')
+          echo "::set-output name=DATE::$DATE"
+          echo "::set-output name=TAG::$([[ "${{ steps.tag.outputs.tag }}" = "" ]] && echo "main_$DATE" || echo "main_${{ steps.tag.outputs.tag }}")"
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Install Dependencies
+        run: sudo apt-get update; sudo apt-get install pkg-config libx11-dev libasound2-dev libudev-dev
+      - name: Bootstrap
+        run: SKIP_SAFETY_CHECKS=1 bin/bootstrap
+      - name: Build Release
+        run: bin/build-wasm
+      - name: Bundle Release
+        run: |
+          cd build
+          zip -r "../${WASM_ZIP_NAME}_web.zip" web/
+      - name: Upload release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "*_web.zip"
+          tag: ${{ steps.suffix.outputs.TAG }}
+          overwrite: true
+          file_glob: true
