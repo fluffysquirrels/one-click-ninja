@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -eux;
+
+readonly repo_dir="$( cd $(dirname ${BASH_SOURCE})/..; pwd )";
+
+./build-wasm
+basic-http-server -x "${repo_dir}/build/web/"

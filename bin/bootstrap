@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -eu;
+
+# Script to install the various tools required
+
+# Due to https://github.com/mrk-its/bevy_webgl2/issues/35 we need a specific version
+BINDGEN_VERSION=0.2.69
+
+if [[ ${SKIP_SAFETY_CHECKS:-0} -ne 1 ]]; then
+    function skip_safety_checks_message() {
+        echo "If you want to skip safety checks and proceed anyway add SKIP_SAFETY_CHECKS=1 before the command" 1>&2
+    }
+
+    if [[ $EUID -eq 0 ]]; then
+       echo "This script should not be run as root" 1>&2
+       skip_safety_checks_message
+       exit 1
+    fi
+
+    # Drop cached creds if there are any
+    sudo -k
+
+    # Try and sudo without password
+    if sudo -n whoami &>/dev/null; then
+        echo "Passwordless sudo is enabled. Running random installation scripts not recommended..." 1>&2
+        skip_safety_checks_message
+        exit 1
+    fi
+fi
+
+
+install_dep() {
+    local rc=`(eval $2 >/dev/null 2>&1); echo $?`
+    if [[ $rc -ne 0 ]]; then
+        echo "Installing $1"
+        eval $3
+    fi
+}
+
+install_dep "wasm32-unknown-unknown target" "rustup target list | grep -q 'wasm32-unknown-unknown (installed)'" "rustup target add wasm32-unknown-unknown"
+install_dep "wasm-bindgen" "wasm-bindgen -V | grep -q $BINDGEN_VERSION" "cargo install wasm-bindgen-cli --force --version $BINDGEN_VERSION"
+install_dep "basic-http-server" "basic-http-server -V" "cargo install basic-http-server"
