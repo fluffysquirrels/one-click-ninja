@@ -15,6 +15,8 @@ struct AttackAnimation {
 
 const LOAD: &'static str = "load";
 
+pub const ATTACK_DURATION: Duration = Duration::from_millis(300);
+
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app
@@ -69,7 +71,7 @@ fn enemy_attack(
     for (entity, _enemy, mut material) in enemy.single_mut() {
         if attack_time_reader.iter().next().is_some() {
             commands.entity(entity).insert(AttackAnimation {
-                until: time.time_since_startup() + Duration::from_millis(300)
+                until: time.time_since_startup() + ATTACK_DURATION,
             });
             *material = sprites.attack.clone();
         }

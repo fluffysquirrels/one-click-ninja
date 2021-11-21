@@ -25,7 +25,7 @@ pub struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_event::<ButtonPressed>()
-           .add_startup_system(spawn_action_spinner.system())
+           .add_startup_system(spawn_action_spinner.system().after("load"))
            .add_system(spin_action_pointer.system())
            .add_system(keyboard_input.system())
            .add_system(choose_action.system());

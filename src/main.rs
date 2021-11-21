@@ -1,6 +1,7 @@
 mod action_spinner;
 mod components;
 mod enemy;
+mod fight_display;
 
 use bevy::prelude::*;
 use crate::components::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction};
@@ -8,6 +9,11 @@ use crate::components::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction}
 struct Sounds {
     bass: Handle<AudioSource>,
     snare: Handle<AudioSource>,
+}
+
+struct Icons {
+    attack: Handle<ColorMaterial>,
+    defend: Handle<ColorMaterial>,
 }
 
 const WIN_W: f32 = 800.;
@@ -31,6 +37,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(action_spinner::Plugin)
         .add_plugin(enemy::Plugin)
+        .add_plugin(fight_display::Plugin)
         .add_startup_system(setup.system())
         .add_startup_system(load_resources.system().label("load"))
         .run();
@@ -45,10 +52,15 @@ fn setup(
 fn load_resources(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut _materials: ResMut<Assets<ColorMaterial>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(Sounds {
         snare: asset_server.load("sfx/kenney_uiaudio/Audio/click1.ogg"),
         bass: asset_server.load("sfx/kenney_uiaudio/Audio/click2.ogg"),
+    });
+
+    commands.insert_resource(Icons {
+        attack: materials.add(asset_server.load("img/sword.png").into()),
+        defend: materials.add(asset_server.load("img/shield.png").into()),
     });
 }
