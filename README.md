@@ -6,4 +6,8 @@ written in Rust with Bevy.
 
 ## Running the game
 
-For development run `bin/run-dev`.
+First time you run, need to run `bin/bootstrap`.
+
+For native development run `bin/run-dev`.
+
+For web development run `bin/run-wasm`.
