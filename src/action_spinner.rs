@@ -1,5 +1,8 @@
 use bevy::prelude::*;
-use crate::{Action, AttackAction, DefendAction, Sounds};
+use crate::{
+    components::{Action, AttackAction, DefendAction, EnemyAttackTime},
+    Sounds,
+};
 use std::f32::consts::PI;
 
 struct ActionIcon {
@@ -21,7 +24,7 @@ pub struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_event::<ButtonPressed>()
-           .add_startup_stage("game_setup", SystemStage::single(spawn_action_spinner.system()))
+           .add_startup_system(spawn_action_spinner.system())
            .add_system(spin_action_pointer.system())
            .add_system(keyboard_input.system())
            .add_system(choose_action.system());
@@ -70,11 +73,14 @@ fn spawn_action_spinner(
     });
 }
 
+const DEFEND_ANGLE: f32 = PI;
+
 fn spin_action_pointer(
     time: Res<Time>,
     mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>,
     audio: Res<Audio>,
     sounds: Res<Sounds>,
+    mut enemy_attack_time_writer: EventWriter<EnemyAttackTime>,
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
         let old_angle = ap.angle;
@@ -84,9 +90,11 @@ fn spin_action_pointer(
             audio.play(sounds.snare.clone());
         }
 
-        if old_angle > PI && new_angle <= PI {
+        if old_angle > DEFEND_ANGLE && new_angle <= DEFEND_ANGLE {
             trace!("play bass");
             audio.play(sounds.bass.clone());
+
+            enemy_attack_time_writer.send(EnemyAttackTime);
         }
 
         ap.angle = new_angle.rem_euclid(2. * PI);

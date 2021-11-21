@@ -1,15 +1,9 @@
 mod action_spinner;
+mod components;
 mod enemy;
 
 use bevy::prelude::*;
-
-enum Action {
-    Attack,
-    Defend,
-}
-
-struct AttackAction;
-struct DefendAction;
+use crate::components::{AttackAction, DefendAction, EnemyAttackTime};
 
 struct Sounds {
     bass: Handle<AudioSource>,
@@ -33,18 +27,26 @@ fn main() {
         })
         .add_event::<AttackAction>()
         .add_event::<DefendAction>()
+        .add_event::<EnemyAttackTime>()
         .add_plugins(DefaultPlugins)
         .add_plugin(action_spinner::Plugin)
+        .add_plugin(enemy::Plugin)
         .add_startup_system(setup.system())
+        .add_startup_system(load_resources.system().label("load"))
         .run();
 }
 
 fn setup(
     mut commands: Commands,
+) {
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+}
+
+fn load_resources(
+    mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut _materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.insert_resource(Sounds {
         snare: asset_server.load("sfx/kenney_uiaudio/Audio/click1.ogg"),
         bass: asset_server.load("sfx/kenney_uiaudio/Audio/click2.ogg"),
