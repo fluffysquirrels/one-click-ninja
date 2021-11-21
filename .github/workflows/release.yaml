@@ -37,7 +37,7 @@ jobs:
       - name: Install Dependencies
         run: sudo apt-get update; sudo apt-get install pkg-config libx11-dev libasound2-dev libudev-dev
       - name: Bootstrap
-        run: bin/bootstrap
+        run: SKIP_SAFETY_CHECKS=1 bin/bootstrap
       - name: Build Release
         run: bin/build-wasm
       - name: Bundle Release
