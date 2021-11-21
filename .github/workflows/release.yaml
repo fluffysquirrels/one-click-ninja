@@ -35,11 +35,21 @@ jobs:
           toolchain: stable
           override: true
       - name: Install Dependencies
-        run: sudo apt-get update; sudo apt-get install pkg-config libx11-dev libasound2-dev libudev-dev
+        run: sudo apt-get update; sudo apt-get install pkg-config libx11-dev libasound2-dev libudev-dev binaryen wabt
       - name: Bootstrap
         run: SKIP_SAFETY_CHECKS=1 bin/bootstrap
       - name: Build Release
         run: bin/build-wasm
+      - name: Optimise Release
+        run: |
+          find "build/web/target" \
+            -maxdepth 1 \
+            -name \*.wasm \
+            -exec wasm-strip "{}" \; \
+            -exec wasm-opt \
+              -o "{}.opt" \
+              -Oz "{}" \; \
+            -exec mv "{}.opt" "{}" \;
       - name: Bundle Release
         run: |
           cd build

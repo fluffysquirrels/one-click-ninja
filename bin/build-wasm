@@ -39,7 +39,6 @@ cargo build --target wasm32-unknown-unknown --release --features web
 find "${rust_target_dir}/release" \
     -maxdepth 1 \
     -name \*.wasm \
-    -exec cp "{}" "${web_target_dir}/" \; \
     -exec wasm-bindgen \
         --out-dir "${web_target_dir}/" \
         --target web \
