@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -eu;
+
+# Script to build wasm
+
+readonly repo_dir="$( cd $(dirname ${BASH_SOURCE})/..; pwd )";
+readonly asset_dir="${repo_dir}/assets"
+readonly web_dir="${repo_dir}/build/web"
+readonly web_target_dir="${web_dir}/target"
+readonly web_assets_dir="${web_dir}/assets"
+readonly rust_target_dir="${repo_dir}/target/wasm32-unknown-unknown"
+
+# Delete old artifacts
+rm -rf "$web_target_dir"
+rm -rf "$web_assets_dir"
+
+# Ensure target dir exists
+mkdir -p "$web_target_dir"
+
+check_dep() {
+    local rc=`(eval $2 >/dev/null 2>&1); echo $?`
+    if [[ $rc -ne 0 ]]; then
+        echo "Missing dependency $1, try running bootstrap" 1>&2
+        exit 1
+    fi
+}
+
+# Make sure we have the tools we need
+check_dep "wasm-bindgen" "wasm-bindgen -V"
+check_dep "basic-http-server" "basic-http-server -V"
+check_dep "wasm32-unknown-unknown target" "rustup target list | grep -q 'wasm32-unknown-unknown (installed)'"
+
+# Build for wasm
+cargo build --target wasm32-unknown-unknown --release --features web
+
+# Copy wasm to output and run bindgen on it
+find "${rust_target_dir}/release" \
+    -maxdepth 1 \
+    -name \*.wasm \
+    -exec cp "{}" "${web_target_dir}/" \; \
+    -exec wasm-bindgen \
+        --out-dir "${web_target_dir}/" \
+        --target web \
+        --no-typescript \
+        "{}" \;
+
+# Copy assets
+cp -r "$asset_dir" "$web_dir"
+

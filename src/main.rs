@@ -24,7 +24,9 @@ fn main() {
         .format_timestamp_micros()
         .init();
 
-    App::build()
+    let mut app = App::build();
+
+    app
         .insert_resource(WindowDescriptor {
             title: "One-Click Ninja".to_string(),
             width: WIN_W,
@@ -39,8 +41,13 @@ fn main() {
         .add_plugin(enemy::Plugin)
         .add_plugin(fight_display::Plugin)
         .add_startup_system(setup.system())
-        .add_startup_system(load_resources.system().label("load"))
-        .run();
+        .add_startup_system(load_resources.system().label("load"));
+
+
+    #[cfg(all(target_arch = "wasm32", feature = "web"))]
+    app.add_plugin(bevy_webgl2::WebGL2Plugin);
+
+    app.run();
 }
 
 fn setup(
