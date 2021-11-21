@@ -119,12 +119,12 @@ fn spin_action_pointer(
         let old_angle = ap.angle;
         let new_angle = old_angle + time.delta_seconds() * ap.speed;
         if old_angle > 0. && new_angle <= 0. {
-            debug!("play snare");
+            trace!("play snare");
             audio.play(sounds.snare.clone());
         }
 
         if old_angle > PI && new_angle <= PI {
-            debug!("play bass");
+            trace!("play bass");
             audio.play(sounds.bass.clone());
         }
 
