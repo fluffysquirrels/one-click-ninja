@@ -20,6 +20,8 @@ native = [
     "bevy/bevy_wgpu",
 ]
 
+diagnostics = []
+
 [dependencies]
 bevy = { version = "0.5.0", features = ["vorbis"], default-features = false }
 bevy_webgl2 = { version = "0.5.0", optional = true }
