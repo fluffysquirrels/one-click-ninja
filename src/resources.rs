@@ -1,6 +1,7 @@
 //! Shared resources
 
 use bevy::prelude::*;
+use bevy_kira_audio::AudioSource;
 
 pub struct Sounds {
     pub bass: Handle<AudioSource>,

@@ -8,6 +8,7 @@ mod resources;
 mod types;
 
 use bevy::prelude::*;
+use bevy_kira_audio::{ AudioPlugin, AudioSource };
 use crate::{
     components::Health,
     events::{Damage, Die, EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
@@ -56,6 +57,7 @@ fn main() {
         .add_event::<PlayerAttackAction>()
         .add_event::<PlayerDefendAction>()
         .add_plugins(DefaultPlugins)
+        .add_plugin(AudioPlugin)
 
         .add_plugin(action_spinner::Plugin)
         .add_plugin(enemy::Plugin)
