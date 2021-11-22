@@ -14,7 +14,7 @@ use crate::{
     resources::{Icons, Sounds},
 };
 
-//#[cfg(feature = "diagnostics")]
+#[cfg(feature = "diagnostics")]
 use {
     std::time::Duration,
 
@@ -28,7 +28,7 @@ use {
     },
 };
 
-//#[cfg(all(feature = "native", feature = "diagnostics"))]
+#[cfg(all(feature = "native", feature = "diagnostics"))]
 use bevy::wgpu::diagnostic::WgpuResourceDiagnosticsPlugin;
 
 
