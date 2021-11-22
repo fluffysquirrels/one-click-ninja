@@ -8,3 +8,4 @@
 * `assets/sprites/Samurai02` from
   <https://opengameart.org/content/2d-samurai-chibi-character> or
   <https://segelstudio.itch.io/3samuraichibi>
+* `assets/sprites/lpc-medieval-fantasy-character` from <https://opengameart.org/content/lpc-medieval-fantasy-character-sprites>
