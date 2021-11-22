@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 use crate::{
-    components::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
+    components::Player,
     enemy,
+    events::Damage,
+    events::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     Icons,
 };
 use std::time::Duration;
@@ -13,6 +15,7 @@ struct HideAfter {
     when: Duration,
 }
 
+/// Is the player defending this beat?
 struct PlayerDefend(bool);
 
 impl bevy::app::Plugin for Plugin {
@@ -32,15 +35,20 @@ fn record_player_defend(
     player_defend.0 = player_defend.0 || player_defend_action.iter().next().is_some();
 }
 
+/// TODO: This combines display and logic, should probably decouple these.
 fn show_fight_icons(
     mut commands: Commands,
-    icons: Res<Icons>,
     mut enemy_attack_time_reader: EventReader<EnemyAttackTime>,
-    time: Res<Time>,
+    mut damage_writer: EventWriter<Damage>,
+    player_query: Query<(Entity, &Player)>,
+    icons: Res<Icons>,
     mut player_defend: ResMut<PlayerDefend>,
+    time: Res<Time>,
 ) {
     if enemy_attack_time_reader.iter().next().is_some() {
-        if player_defend.0 {
+        let did_defend = player_defend.0;
+        player_defend.0 = false;
+        if did_defend {
             commands.spawn_bundle(SpriteBundle {
                 material: icons.defend.clone(),
                 transform: Transform {
@@ -52,8 +60,14 @@ fn show_fight_icons(
             })
                 .insert(FightIcon)
                 .insert(HideAfter { when: time.time_since_startup() + enemy::ATTACK_DURATION });
-
-            player_defend.0 = false;
+        } else {
+            // Didn't defend
+            for (player_entity, _) in player_query.single() {
+                damage_writer.send(Damage {
+                    target: player_entity,
+                    hp: 1,
+                });
+            }
         }
 
         commands.spawn_bundle(SpriteBundle {
@@ -74,7 +88,6 @@ fn hide_fight_icons(
     mut commands: Commands,
     time: Res<Time>,
     hide_query: Query<(Entity, &FightIcon, &HideAfter)>,
-    mut player_defend: ResMut<PlayerDefend>,
 ) {
     for (entity, _, hide_after) in hide_query.iter() {
         if time.time_since_startup() > hide_after.when {

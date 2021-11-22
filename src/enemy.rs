@@ -1,5 +1,8 @@
 use bevy::prelude::*;
-use crate::components::{Enemy, EnemyAttackTime};
+use crate::{
+    components::Enemy,
+    events::EnemyAttackTime,
+};
 use std::time::Duration;
 
 pub struct Plugin;

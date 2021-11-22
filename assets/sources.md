@@ -1,5 +1,6 @@
 # Asset sources
 
+* `assets/fonts/FiraSans-Bold.ttf` from <https://fonts.google.com/specimen/Fira+Sans>
 * `assets/img/pointer.png` drawn in GIMP
 * `assets/img/shield.png` from <https://openclipart.org/detail/214816/shield-5>
 * `assets/img/sword.png` from <https://openclipart.org/detail/289643/sword-2>
