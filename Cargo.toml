@@ -20,6 +20,8 @@ native = [
     "bevy/bevy_wgpu",
 ]
 
+diagnostics = []
+
 [dependencies]
 bevy = { version = "0.5.0", features = ["vorbis"], default-features = false }
 bevy_asset_loader = { version = "0.6.0" }

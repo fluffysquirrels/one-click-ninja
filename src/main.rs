@@ -14,6 +14,24 @@ use crate::{
     resources::{Icons, Sounds},
 };
 
+//#[cfg(feature = "diagnostics")]
+use {
+    std::time::Duration,
+
+    bevy::{
+        diagnostic::{
+            EntityCountDiagnosticsPlugin,
+            LogDiagnosticsPlugin,
+            FrameTimeDiagnosticsPlugin,
+        },
+        asset::diagnostic::AssetCountDiagnosticsPlugin,
+    },
+};
+
+//#[cfg(all(feature = "native", feature = "diagnostics"))]
+use bevy::wgpu::diagnostic::WgpuResourceDiagnosticsPlugin;
+
+
 const WIN_W: f32 = 800.;
 const WIN_H: f32 = 600.;
 
@@ -29,7 +47,7 @@ fn main() {
             title: "One-Click Ninja".to_string(),
             width: WIN_W,
             height: WIN_H,
-            // vsync: true,
+            vsync: true, //Doesn't actually work (at least on linux)
             .. Default::default()
         })
         .add_event::<Damage>()
@@ -38,6 +56,7 @@ fn main() {
         .add_event::<PlayerAttackAction>()
         .add_event::<PlayerDefendAction>()
         .add_plugins(DefaultPlugins)
+
         .add_plugin(action_spinner::Plugin)
         .add_plugin(enemy::Plugin)
         .add_plugin(fight_display::Plugin)
@@ -46,6 +65,18 @@ fn main() {
         .add_startup_system(load_resources.system().label("load"))
         .add_system(process_damage.system());
 
+
+    #[cfg(feature = "diagnostics")]
+    {
+        app
+            .add_plugin(LogDiagnosticsPlugin::default())
+            .add_plugin(FrameTimeDiagnosticsPlugin::default())
+            .add_plugin(EntityCountDiagnosticsPlugin::default())
+            .add_plugin(AssetCountDiagnosticsPlugin::<Texture>::default());
+
+        #[cfg(feature = "native")]
+        app.add_plugin(WgpuResourceDiagnosticsPlugin::default());
+    }
 
     #[cfg(all(target_arch = "wasm32", feature = "web"))]
     app.add_plugin(bevy_webgl2::WebGL2Plugin);

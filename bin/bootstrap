@@ -40,3 +40,4 @@ install_dep() {
 install_dep "wasm32-unknown-unknown target" "rustup target list | grep -q 'wasm32-unknown-unknown (installed)'" "rustup target add wasm32-unknown-unknown"
 install_dep "wasm-bindgen" "wasm-bindgen -V | grep -q $BINDGEN_VERSION" "cargo install wasm-bindgen-cli --force --version $BINDGEN_VERSION"
 install_dep "basic-http-server" "basic-http-server -V" "cargo install basic-http-server"
+install_dep "cargo-watch" "cargo watch -V" "cargo install cargo-watch"

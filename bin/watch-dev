@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -eux;
+
+readonly repo_dir="$( cd $(dirname ${BASH_SOURCE})/..; pwd )";
+
+cd "${repo_dir}";
+cargo watch --features native,bevy/dynamic,diagnostics -x "run";
