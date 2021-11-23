@@ -35,9 +35,9 @@ fn load_resources(
 ) {
     commands.insert_resource(Sprites {
         idle: materials.add(
-            asset_server.load("sprites/Samurai02/01-Idle/01-Normal/2D_SM02_Idle_000.png").into()),
+            asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/archer/walk_down/00.png").into()),
         attack: materials.add(
-            asset_server.load("sprites/Samurai02/03-Attack/2D_SM02_Attack_004.png").into()),
+            asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/archer/spear_down/05.png").into()),
     });
 }
 
@@ -51,7 +51,7 @@ fn spawn_current_enemy(
         material: sprites.idle.clone(),
         transform: Transform {
             translation: Vec3::new(200., 200., 0.),
-            scale: Vec3::new(0.3, 0.3, 0.3),
+            scale: Vec3::ONE * 2.0,
             .. Default::default()
         },
         .. Default::default()
