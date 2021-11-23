@@ -1,9 +1,12 @@
 //! Shared events
 
 use bevy::prelude::*;
-use crate::types::Hp;
+use crate::types::{DamageType, Hp};
 
-pub struct PlayerAttackAction;
+#[derive(Debug)]
+pub struct PlayerAttackAction {
+    pub damage_type: DamageType,
+}
 pub struct PlayerDefendAction;
 
 pub struct EnemyAttackTime;

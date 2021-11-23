@@ -4,7 +4,8 @@
 use crate::types::Hp;
 
 pub enum Action {
-    Attack,
+    AttackMagic,
+    AttackSword,
     Defend,
 }
 

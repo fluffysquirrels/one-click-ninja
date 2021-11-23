@@ -8,7 +8,7 @@ pub struct Plugin;
 
 struct PlayerHpDisplay;
 
-const START_HP: Hp = 3;
+const START_HP: Hp = 5;
 
 struct Sprites {
     idle: Handle<ColorMaterial>,
@@ -35,7 +35,8 @@ fn load_resources(
         idle: materials.add(
             asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/player/walk_up/00.png").into()),
         attack: materials.add(
-            asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/player/spear_up/05.png").into()),        dead: materials.add(
+            asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/player/spear_up/05.png").into()),
+        dead: materials.add(
             asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/player/die/05.png").into()),
     });
 }

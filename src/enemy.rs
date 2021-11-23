@@ -86,7 +86,7 @@ fn spawn_current_enemy(
             },
         ),
         transform: Transform {
-            translation: Vec3::new(200., 150., 0.),
+            translation: Vec3::new(200., 120., 0.),
             .. Default::default()
         },
         .. Default::default()

@@ -5,6 +5,7 @@ use crate::{
     components::{Action, Health, Player},
     events::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     Sounds,
+    types::{DamageType},
 };
 use std::f32::consts::PI;
 
@@ -49,7 +50,7 @@ fn spawn_action_spinner(
             .. Default::default()
         },
         .. Default::default()
-    }).insert(ActionIcon { action: Action::Attack });
+    }).insert(ActionIcon { action: Action::AttackSword });
 
     let shield_tex = asset_server.load("img/shield.png");
     commands.spawn_bundle(SpriteBundle {
@@ -61,6 +62,17 @@ fn spawn_action_spinner(
         },
         .. Default::default()
     }).insert(ActionIcon { action: Action::Defend });
+
+    let magic_tex = asset_server.load("sprites/magic_ball.png");
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.add(magic_tex.into()),
+        transform: Transform {
+            translation: Vec3::new(-300., 0., 0.),
+            scale: Vec3::ONE * 1.,
+            .. Default::default()
+        },
+        .. Default::default()
+    }).insert(ActionIcon { action: Action::AttackMagic });
 
     let pointer_tex = asset_server.load("img/pointer.png");
     commands.spawn_bundle(SpriteBundle {
@@ -143,8 +155,17 @@ fn choose_action(
                 let ptr = pointer.single().unwrap();
                 let deg = ptr.angle * 180. / PI;
                 if deg >= 0. && deg <= 20. || deg >= 340. {
-                    debug!("choose_action: emit PlayerAttackAction");
-                    attack_writer.send(PlayerAttackAction);
+                    let attack = PlayerAttackAction {
+                        damage_type: DamageType::Sword,
+                    };
+                    debug!("choose_action: emit {:?}", attack);
+                    attack_writer.send(attack);
+                } else if deg >= 70. && deg <= 110. {
+                    let attack = PlayerAttackAction {
+                        damage_type: DamageType::Magic,
+                    };
+                    debug!("choose_action: emit {:?}", attack);
+                    attack_writer.send(attack);
                 } else if deg >= 160. && deg <= 200. {
                     debug!("choose_action: emit PlayerDefendAction");
                     defend_writer.send(PlayerDefendAction);

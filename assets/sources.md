@@ -8,3 +8,4 @@
 * `assets/sprites/lpc-medieval-fantasy-character` from
   <https://opengameart.org/content/lpc-medieval-fantasy-character-sprites>,
   with `our_work` subdirectory done based on that.
+* `assets/sprites/magic_ball.png` from <https://opengameart.org/content/arcane-magic-effect>
