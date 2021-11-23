@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_kira_audio::Audio;
 
 use crate::{
-    components::{Action},
+    components::{Action, Health, Player},
     events::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     Sounds,
 };
@@ -28,7 +28,7 @@ pub struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_event::<ButtonPressed>()
-           .add_startup_system(spawn_action_spinner.system().after("load"))
+           .add_startup_system(spawn_action_spinner.system())
            .add_system(spin_action_pointer.system())
            .add_system(keyboard_input.system())
            .add_system(choose_action.system());
@@ -133,20 +133,26 @@ fn choose_action(
     mut attack_writer: EventWriter<PlayerAttackAction>,
     mut defend_writer: EventWriter<PlayerDefendAction>,
     pointer: Query<&ActionPointer>,
+    player: Query<&Health, With<Player>>
 ) {
     if button_reader.iter().next().is_some() {
-        // Button was pressed, calculate the action.
+        // Button was pressed
 
-        let ptr = pointer.single().unwrap();
-        let deg = ptr.angle * 180. / PI;
-        if deg >= 0. && deg <= 20. || deg >= 340. {
-            debug!("choose_action: emit PlayerAttackAction");
-            attack_writer.send(PlayerAttackAction);
-        } else if deg >= 160. && deg <= 200. {
-            debug!("choose_action: emit PlayerDefendAction");
-            defend_writer.send(PlayerDefendAction);
-        } else {
-            // Missed all action icons, do nothing.
-        }
+        match player.single() {
+            Ok(health) if health.current > 0 => {
+                let ptr = pointer.single().unwrap();
+                let deg = ptr.angle * 180. / PI;
+                if deg >= 0. && deg <= 20. || deg >= 340. {
+                    debug!("choose_action: emit PlayerAttackAction");
+                    attack_writer.send(PlayerAttackAction);
+                } else if deg >= 160. && deg <= 200. {
+                    debug!("choose_action: emit PlayerDefendAction");
+                    defend_writer.send(PlayerDefendAction);
+                } else {
+                    // Missed all action icons, do nothing.
+                }
+            },
+            _ => {},
+        };
     }
 }
