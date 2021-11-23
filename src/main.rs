@@ -12,7 +12,7 @@ use bevy_kira_audio::{ AudioPlugin, AudioSource };
 use crate::{
     components::Health,
     events::{Damage, Die, EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
-    resources::{Icons, Sounds},
+    resources::{Fonts, Icons, Sounds},
 };
 
 #[cfg(feature = "diagnostics")]
@@ -64,7 +64,7 @@ fn main() {
         .add_plugin(fight_display::Plugin)
         .add_plugin(player::Plugin)
         .add_startup_system(setup.system())
-        .add_startup_system(load_resources.system().label("load"))
+        .add_startup_system_to_stage(StartupStage::PreStartup, load_resources.system())
         .add_system(process_damage.system());
 
 
@@ -105,6 +105,10 @@ fn load_resources(
     commands.insert_resource(Icons {
         attack: materials.add(asset_server.load("img/sword.png").into()),
         defend: materials.add(asset_server.load("img/shield.png").into()),
+    });
+
+    commands.insert_resource(Fonts {
+        default: asset_server.load("fonts/FiraSans-Bold.ttf"),
     });
 }
 

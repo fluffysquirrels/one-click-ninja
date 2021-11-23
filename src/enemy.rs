@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use crate::{
     components::{Enemy, Health},
     events::{Damage, EnemyAttackTime, PlayerAttackAction},
+    resources::Fonts,
     types::Hp,
 };
 use std::time::Duration;
@@ -55,6 +56,7 @@ fn spawn_current_enemy(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     sprites: Res<Sprites>,
+    fonts: Res<Fonts>,
 ) {
     commands.spawn_bundle(SpriteBundle {
         material: sprites.idle.clone(),
@@ -75,8 +77,7 @@ fn spawn_current_enemy(
         text: Text::with_section(
             format_hp(START_HP, START_HP),
             TextStyle {
-                // TODO: Stash this in a resource
-                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                font: fonts.default.clone(),
                 font_size: 30.0,
                 color: Color::RED,
             },

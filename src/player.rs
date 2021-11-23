@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use crate::{
     components::{Health, Player},
+    resources::Fonts,
     types::Hp,
 };
 
@@ -66,13 +67,13 @@ fn spawn_player(
 fn spawn_player_hp(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    fonts: Res<Fonts>,
 ) {
     commands.spawn_bundle(Text2dBundle {
         text: Text::with_section(
             format_hp(START_HP, START_HP),
             TextStyle {
-                // TODO: Stash this in a resource
-                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                font: fonts.default.clone(),
                 font_size: 30.0,
                 color: Color::GREEN,
             },
