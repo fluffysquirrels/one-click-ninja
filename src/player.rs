@@ -70,9 +70,10 @@ fn spawn_player_hp(
         text: Text::with_section(
             format_hp(START_HP, START_HP),
             TextStyle {
+                // TODO: Stash this in a resource
                 font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                 font_size: 30.0,
-                color: Color::RED,
+                color: Color::GREEN,
             },
             TextAlignment {
                 vertical: VerticalAlign::Center,
