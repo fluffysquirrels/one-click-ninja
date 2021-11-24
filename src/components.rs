@@ -17,3 +17,10 @@ pub struct Health {
 }
 
 pub struct Player;
+
+pub enum Character {
+    Archer,
+    Knight,
+    Mage,
+    Player,
+}

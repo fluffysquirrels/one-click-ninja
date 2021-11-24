@@ -1,18 +1,26 @@
 use bevy::prelude::*;
 use crate::{
-    components::{Enemy, Health},
+    components::{Character, Enemy, Health},
     events::{Damage, EnemyAttackTime, PlayerAttackAction},
     resources::Fonts,
     types::Hp,
 };
+use rand::Rng;
 use std::time::Duration;
 
 pub struct Plugin;
 
-struct Sprites {
+#[derive(Clone)]
+struct CharacterSprites {
     idle: Handle<ColorMaterial>,
     attack: Handle<ColorMaterial>,
     dead: Handle<ColorMaterial>,
+}
+
+struct Sprites {
+    archer: CharacterSprites,
+    knight: CharacterSprites,
+    mage: CharacterSprites,
 }
 
 struct AttackAnimation {
@@ -48,19 +56,51 @@ fn load_resources(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(Sprites {
-        idle: materials.add(
-            asset_server.load(
-                "sprites/lpc-medieval-fantasy-character/our_work/archer/walk_down/00.png"
-            ).into()),
-        attack: materials.add(
-            asset_server.load(
-                "sprites/lpc-medieval-fantasy-character/our_work/archer/bow_down/09.png"
-                // "sprites/lpc-medieval-fantasy-character/our_work/archer/spear_down/05.png"
-            ).into()),
-        dead: materials.add(
-            asset_server.load(
-                "sprites/lpc-medieval-fantasy-character/our_work/archer/die/05.png"
-            ).into()),
+        archer: CharacterSprites {
+            idle: materials.add(
+                asset_server.load(
+                    "sprites/lpc-medieval-fantasy-character/our_work/archer/walk_down/00.png"
+                ).into()),
+            attack: materials.add(
+                asset_server.load(
+                    "sprites/lpc-medieval-fantasy-character/our_work/archer/bow_down/09.png"
+                ).into()),
+            dead: materials.add(
+                asset_server.load(
+                    "sprites/lpc-medieval-fantasy-character/our_work/archer/die/05.png"
+                ).into()),
+        },
+
+        knight: CharacterSprites {
+            idle: materials.add(
+                asset_server.load(
+                    "sprites/lpc-medieval-fantasy-character/our_work/knight/walk_down/00.png"
+                ).into()),
+            attack: materials.add(
+                asset_server.load(
+                    "sprites/lpc-medieval-fantasy-character/our_work/knight/spear_down/05.png"
+                ).into()),
+            dead: materials.add(
+                asset_server.load(
+                    "sprites/lpc-medieval-fantasy-character/our_work/knight/die/05.png"
+                ).into()),
+        },
+
+        mage: CharacterSprites {
+            idle: materials.add(
+                asset_server.load(
+                    "sprites/lpc-medieval-fantasy-character/our_work/mage/walk_down/00.png"
+                ).into()),
+            attack: materials.add(
+                asset_server.load(
+                    "sprites/lpc-medieval-fantasy-character/our_work/mage/cast_down/05.png"
+                ).into()),
+            dead: materials.add(
+                asset_server.load(
+                    "sprites/lpc-medieval-fantasy-character/our_work/mage/die/05.png"
+                ).into()),
+        }
+
     });
 }
 
@@ -69,8 +109,21 @@ fn spawn_current_enemy(
     sprites: Res<Sprites>,
     fonts: Res<Fonts>,
 ) {
+    let character = match rand::thread_rng().gen_range(0..=2) {
+        0 => Character::Archer,
+        1 => Character::Knight,
+        2 => Character::Mage,
+        _ => unreachable!(),
+    };
+    let character_sprites = match character {
+        Character::Archer => sprites.archer.clone(),
+        Character::Knight => sprites.knight.clone(),
+        Character::Mage => sprites.mage.clone(),
+        _ => unreachable!(),
+    };
+
     commands.spawn_bundle(SpriteBundle {
-        material: sprites.idle.clone(),
+        material: character_sprites.idle.clone(),
         transform: Transform {
             translation: Vec3::new(200., 200., 0.),
             scale: Vec3::ONE * 2.0,
@@ -79,6 +132,8 @@ fn spawn_current_enemy(
         .. Default::default()
     })
         .insert(Enemy)
+        .insert(character)
+        .insert(character_sprites)
         .insert(Health {
             current: START_HP,
             max: START_HP,
@@ -125,12 +180,12 @@ fn respawn_current_enemy(
 
 fn enemy_attack(
     mut commands: Commands,
-    mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>), With<Enemy>>,
+    mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>, &CharacterSprites),
+                     With<Enemy>>,
     mut attack_time_reader: EventReader<EnemyAttackTime>,
-    sprites: Res<Sprites>,
     time: Res<Time>,
 ) {
-    for (entity, health, mut material) in enemy.single_mut() {
+    for (entity, health, mut material, sprites) in enemy.single_mut() {
         if health.current > 0 {
             if attack_time_reader.iter().next().is_some() {
                 commands.entity(entity).insert(AttackAnimation {
@@ -145,10 +200,10 @@ fn enemy_attack(
 fn attack_animation(
     mut commands: Commands,
     time: Res<Time>,
-    mut enemy: Query<(Entity, &mut Handle<ColorMaterial>, &AttackAnimation), With<Enemy>>,
-    sprites: Res<Sprites>,
+    mut enemy: Query<(Entity, &mut Handle<ColorMaterial>, &AttackAnimation, &CharacterSprites),
+                     With<Enemy>>,
 ) {
-    for (entity, mut material, anim) in enemy.single_mut() {
+    for (entity, mut material, anim, sprites) in enemy.single_mut() {
         if time.time_since_startup() > anim.until {
             *material = sprites.idle.clone();
             commands.entity(entity).remove::<AttackAnimation>();
@@ -159,13 +214,12 @@ fn attack_animation(
 fn update_enemy_hp(
     mut commands: Commands,
     mut hp_display: Query<&mut Text, With<EnemyHpDisplay>>,
-    mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>),
+    mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>, &CharacterSprites),
                      With<Enemy>>,
     respawn_timer_query: Query<&RespawnTimer, With<Enemy>>,
-    sprites: Res<Sprites>,
     time: Res<Time>,
 ) {
-    for (enemy_entity, health, mut material) in enemy.single_mut() {
+    for (enemy_entity, health, mut material, sprites) in enemy.single_mut() {
         if health.current == 0 {
             *material = sprites.dead.clone();
             if !respawn_timer_query.single().is_ok() {
