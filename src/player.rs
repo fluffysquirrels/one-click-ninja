@@ -1,9 +1,11 @@
 use bevy::prelude::*;
 use crate::{
     components::{Health, Player},
+    events::PlayerAttackAction,
     resources::Fonts,
     types::Hp,
 };
+use std::time::Duration;
 
 pub struct Plugin;
 
@@ -17,13 +19,20 @@ struct Sprites {
     dead: Handle<ColorMaterial>,
 }
 
+enum AnimationState {
+    Dead,
+    Attacking { until: Duration },
+    Idle,
+}
+
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app
             .add_startup_system_to_stage(StartupStage::PreStartup, load_resources.system())
             .add_startup_system(spawn_player_hp.system())
             .add_startup_system(spawn_player.system())
-            .add_system(update_player_hp.system());
+            .add_system_to_stage(CoreStage::PostUpdate, update_player_display.system())
+            .add_system(player_attack.system());
     }
 }
 
@@ -53,6 +62,7 @@ fn spawn_player(
             current: START_HP,
             max: START_HP,
         })
+        .insert(AnimationState::Idle)
         .insert_bundle(SpriteBundle {
             material: sprites.idle.clone(),
             transform: Transform {
@@ -66,7 +76,6 @@ fn spawn_player(
 
 fn spawn_player_hp(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     fonts: Res<Fonts>,
 ) {
     commands.spawn_bundle(Text2dBundle {
@@ -90,14 +99,42 @@ fn spawn_player_hp(
     }).insert(PlayerHpDisplay);
 }
 
-fn update_player_hp(
-    mut player: Query<(&Player, &Health, &mut Handle<ColorMaterial>)>,
+fn player_attack(
+    mut attack_reader: EventReader<PlayerAttackAction>,
+    mut anim_query: Query<&mut AnimationState, With<Player>>,
+    time: Res<Time>,
+) {
+    if attack_reader.iter().next().is_some() {
+        for mut anim in anim_query.single_mut() {
+            *anim = AnimationState::Attacking {
+                until: time.time_since_startup() + Duration::from_millis(300)
+            };
+        }
+    }
+}
+
+fn update_player_display(
+    mut player: Query<(&mut AnimationState, &Health, &mut Handle<ColorMaterial>), With<Player>>,
     mut display_hp: Query<(&PlayerHpDisplay, &mut Text)>,
     sprites: Res<Sprites>,
+    time: Res<Time>,
 ) {
-    for (_, health, mut mat) in player.single_mut() {
-        if health.current == 0 {
+    for (mut anim, health, mut mat) in player.single_mut() {
+        let dead = health.current == 0;
+        if dead {
             *mat = sprites.dead.clone();
+            *anim = AnimationState::Dead;
+        } else {
+            match *anim {
+                AnimationState::Dead => unreachable!(),
+                AnimationState::Attacking { until } if time.time_since_startup() < until => {
+                    *mat = sprites.attack.clone();
+                },
+                _ => {
+                    *mat = sprites.idle.clone();
+                    *anim = AnimationState::Idle;
+                },
+            }
         }
         for (_, mut text) in display_hp.single_mut() {
             text.sections[0].value = format_hp(health.current, health.max);

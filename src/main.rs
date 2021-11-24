@@ -8,7 +8,7 @@ mod resources;
 mod types;
 
 use bevy::prelude::*;
-use bevy_kira_audio::{ AudioPlugin, AudioSource };
+use bevy_kira_audio::AudioPlugin;
 use crate::{
     components::Health,
     events::{Damage, Die, EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},

@@ -182,7 +182,7 @@ fn update_enemy_hp(
 }
 
 fn respawn_timer(
-    mut commands: Commands,
+    commands: Commands,
     fonts: Res<Fonts>,
     sprites: Res<Sprites>,
     time: Res<Time>,
