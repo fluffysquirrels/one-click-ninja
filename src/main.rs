@@ -125,11 +125,13 @@ fn process_damage(
             },
             Ok(h) => h,
         };
-        health.current = health.current.checked_sub(damage.hp).unwrap_or(0);
-        if health.current == 0 {
-            die_writer.send(Die {
-                target: damage.target,
-            });
+        if health.vulnerable_to.contains(&damage.damage_type) {
+            health.current = health.current.checked_sub(damage.hp).unwrap_or(0);
+            if health.current == 0 {
+                die_writer.send(Die {
+                    target: damage.target,
+                });
+            }
         }
     }
 }

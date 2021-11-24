@@ -15,8 +15,9 @@ const START_HP: Hp = 5;
 
 struct Sprites {
     idle: Handle<ColorMaterial>,
-    attack_sword: Handle<ColorMaterial>,
+    attack_arrow: Handle<ColorMaterial>,
     attack_magic: Handle<ColorMaterial>,
+    attack_sword: Handle<ColorMaterial>,
     dead: Handle<ColorMaterial>,
 }
 
@@ -49,6 +50,9 @@ fn load_resources(
         idle: materials.add(
             asset_server.load(
                 "sprites/lpc-medieval-fantasy-character/our_work/player/walk_up/00.png").into()),
+        attack_arrow: materials.add(
+            asset_server.load(
+                "sprites/lpc-medieval-fantasy-character/our_work/player/bow_up/09.png").into()),
         attack_sword: materials.add(
             asset_server.load(
                 "sprites/lpc-medieval-fantasy-character/our_work/player/spear_up/05.png").into()),
@@ -71,6 +75,7 @@ fn spawn_player(
         .insert(Health {
             current: START_HP,
             max: START_HP,
+            vulnerable_to: vec![DamageType::Arrow, DamageType::Magic, DamageType::Sword],
         })
         .insert(AnimationState::Idle)
         .insert_bundle(SpriteBundle {
@@ -142,6 +147,7 @@ fn update_player_display(
                     until, damage_type: ref dt,
                 } if time.time_since_startup() < until => {
                     *mat = match dt {
+                        DamageType::Arrow => sprites.attack_arrow.clone(),
                         DamageType::Sword => sprites.attack_sword.clone(),
                         DamageType::Magic => sprites.attack_magic.clone(),
                     }

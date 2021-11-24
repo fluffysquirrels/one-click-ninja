@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::{
-    components::{Enemy, Health, Player},
+    components::{AttackType, Enemy, Health, Player},
     enemy,
     events::Damage,
     events::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
@@ -41,16 +41,16 @@ fn show_fight_icons(
     mut enemy_attack_time_reader: EventReader<EnemyAttackTime>,
     mut damage_writer: EventWriter<Damage>,
     player_query: Query<Entity, With<Player>>,
-    enemy_query: Query<&Health, With<Enemy>>,
+    enemy_query: Query<(&Health, &AttackType), With<Enemy>>,
     icons: Res<Icons>,
     mut player_defend: ResMut<PlayerDefend>,
     time: Res<Time>,
 ) {
-    for enemy_health in enemy_query.single() {
+    for (enemy_health, enemy_attack_type) in enemy_query.single() {
         if enemy_health.current == 0 {
             return;
         }
-        if enemy_attack_time_reader.iter().next().is_some() {
+        if let Some(_) = enemy_attack_time_reader.iter().next() {
             let did_defend = player_defend.0;
             player_defend.0 = false;
             if did_defend {
@@ -71,6 +71,7 @@ fn show_fight_icons(
                     damage_writer.send(Damage {
                         target: player_entity,
                         hp: 1,
+                        damage_type: enemy_attack_type.damage_type.clone(),
                     });
                 }
             }

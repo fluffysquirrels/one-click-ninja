@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 use crate::{
-    components::{Character, Enemy, Health},
+    components::{AttackType, Character, Enemy, Health},
     events::{Damage, EnemyAttackTime, PlayerAttackAction},
     resources::Fonts,
-    types::Hp,
+    types::{DamageType, Hp},
 };
 use rand::Rng;
 use std::time::Duration;
@@ -119,7 +119,7 @@ fn spawn_current_enemy(
         Character::Archer => sprites.archer.clone(),
         Character::Knight => sprites.knight.clone(),
         Character::Mage => sprites.mage.clone(),
-        _ => unreachable!(),
+        Character::Player => unreachable!(),
     };
 
     commands.spawn_bundle(SpriteBundle {
@@ -132,11 +132,29 @@ fn spawn_current_enemy(
         .. Default::default()
     })
         .insert(Enemy)
-        .insert(character)
+        .insert(character.clone())
         .insert(character_sprites)
         .insert(Health {
             current: START_HP,
             max: START_HP,
+            vulnerable_to:
+                match character {
+                    Character::Archer => vec![DamageType::Arrow,
+                                              DamageType::Magic,
+                                              DamageType::Sword],
+                    Character::Knight => vec![DamageType::Magic],
+                    Character::Mage   => vec![DamageType::Arrow, DamageType::Sword],
+                    Character::Player => unreachable!(),
+                }
+            ,
+        })
+        .insert(AttackType { damage_type:
+            match character {
+                Character::Archer => DamageType::Arrow,
+                Character::Knight => DamageType::Sword,
+                Character::Mage   => DamageType::Magic,
+                Character::Player => unreachable!(),
+            }
         });
 
     commands.spawn_bundle(Text2dBundle {
@@ -261,11 +279,12 @@ fn enemy_was_attacked(
     mut damage_writer: EventWriter<Damage>,
     enemy_query: Query<Entity, With<Enemy>>,
 ) {
-    if player_attack_reader.iter().next().is_some() {
+    if let Some(attack) = player_attack_reader.iter().next() {
         for enemy in enemy_query.single() {
             damage_writer.send(Damage {
                 target: enemy,
                 hp: 1,
+                damage_type: attack.damage_type.clone(),
             });
         }
     }
