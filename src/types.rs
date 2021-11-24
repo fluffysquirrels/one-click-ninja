@@ -1,6 +1,6 @@
 pub type Hp = u32;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum DamageType {
     Sword,
     Magic,

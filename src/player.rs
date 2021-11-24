@@ -3,7 +3,7 @@ use crate::{
     components::{Health, Player},
     events::PlayerAttackAction,
     resources::Fonts,
-    types::Hp,
+    types::{DamageType, Hp},
 };
 use std::time::Duration;
 
@@ -15,13 +15,17 @@ const START_HP: Hp = 5;
 
 struct Sprites {
     idle: Handle<ColorMaterial>,
-    attack: Handle<ColorMaterial>,
+    attack_sword: Handle<ColorMaterial>,
+    attack_magic: Handle<ColorMaterial>,
     dead: Handle<ColorMaterial>,
 }
 
 enum AnimationState {
     Dead,
-    Attacking { until: Duration },
+    Attacking {
+        until: Duration,
+        damage_type: DamageType
+    },
     Idle,
 }
 
@@ -43,11 +47,17 @@ fn load_resources(
 ) {
     commands.insert_resource(Sprites {
         idle: materials.add(
-            asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/player/walk_up/00.png").into()),
-        attack: materials.add(
-            asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/player/spear_up/05.png").into()),
+            asset_server.load(
+                "sprites/lpc-medieval-fantasy-character/our_work/player/walk_up/00.png").into()),
+        attack_sword: materials.add(
+            asset_server.load(
+                "sprites/lpc-medieval-fantasy-character/our_work/player/spear_up/05.png").into()),
+        attack_magic: materials.add(
+            asset_server.load(
+                "sprites/lpc-medieval-fantasy-character/our_work/player/cast_up/05.png").into()),
         dead: materials.add(
-            asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/player/die/05.png").into()),
+            asset_server.load(
+                "sprites/lpc-medieval-fantasy-character/our_work/player/die/05.png").into()),
     });
 }
 
@@ -104,10 +114,11 @@ fn player_attack(
     mut anim_query: Query<&mut AnimationState, With<Player>>,
     time: Res<Time>,
 ) {
-    if attack_reader.iter().next().is_some() {
+    if let Some(attack) = attack_reader.iter().next() {
         for mut anim in anim_query.single_mut() {
             *anim = AnimationState::Attacking {
-                until: time.time_since_startup() + Duration::from_millis(300)
+                until: time.time_since_startup() + Duration::from_millis(300),
+                damage_type: attack.damage_type.clone(),
             };
         }
     }
@@ -127,8 +138,13 @@ fn update_player_display(
         } else {
             match *anim {
                 AnimationState::Dead => unreachable!(),
-                AnimationState::Attacking { until } if time.time_since_startup() < until => {
-                    *mat = sprites.attack.clone();
+                AnimationState::Attacking {
+                    until, damage_type: ref dt,
+                } if time.time_since_startup() < until => {
+                    *mat = match dt {
+                        DamageType::Sword => sprites.attack_sword.clone(),
+                        DamageType::Magic => sprites.attack_magic.clone(),
+                    }
                 },
                 _ => {
                     *mat = sprites.idle.clone();
