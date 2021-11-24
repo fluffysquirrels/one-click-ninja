@@ -103,8 +103,8 @@ fn load_resources(
     });
 
     commands.insert_resource(Icons {
-        attack: materials.add(asset_server.load("img/sword.png").into()),
-        defend: materials.add(asset_server.load("img/shield.png").into()),
+        attack: materials.add(asset_server.load("sprites/sword.png").into()),
+        defend: materials.add(asset_server.load("sprites/shield.png").into()),
     });
 
     commands.insert_resource(Fonts {

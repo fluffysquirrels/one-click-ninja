@@ -41,7 +41,7 @@ fn spawn_action_spinner(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let sword_tex = asset_server.load("img/sword.png");
+    let sword_tex = asset_server.load("sprites/sword.png");
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(sword_tex.into()),
         transform: Transform {
@@ -52,7 +52,7 @@ fn spawn_action_spinner(
         .. Default::default()
     }).insert(ActionIcon { action: Action::AttackSword });
 
-    let shield_tex = asset_server.load("img/shield.png");
+    let shield_tex = asset_server.load("sprites/shield.png");
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(shield_tex.into()),
         transform: Transform {
@@ -74,7 +74,7 @@ fn spawn_action_spinner(
         .. Default::default()
     }).insert(ActionIcon { action: Action::AttackMagic });
 
-    let pointer_tex = asset_server.load("img/pointer.png");
+    let pointer_tex = asset_server.load("sprites/pointer.png");
     commands.spawn_bundle(SpriteBundle {
         sprite: Sprite::new(Vec2::new(5., 40.)),
         material: materials.add(pointer_tex.into()),
