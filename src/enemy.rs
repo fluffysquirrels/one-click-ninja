@@ -21,6 +21,11 @@ struct AttackAnimation {
 
 struct EnemyHpDisplay;
 
+#[derive(Debug)]
+struct RespawnTimer {
+    at: std::time::Duration,
+}
+
 pub const ATTACK_DURATION: Duration = Duration::from_millis(300);
 pub const START_HP: Hp = 2;
 
@@ -32,7 +37,8 @@ impl bevy::app::Plugin for Plugin {
             .add_system(enemy_attack.system())
             .add_system(attack_animation.system())
             .add_system(update_enemy_hp.system())
-            .add_system(enemy_was_attacked.system());
+            .add_system(enemy_was_attacked.system())
+            .add_system(respawn_timer.system());
     }
 }
 
@@ -43,18 +49,23 @@ fn load_resources(
 ) {
     commands.insert_resource(Sprites {
         idle: materials.add(
-            asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/archer/walk_down/00.png").into()),
+            asset_server.load(
+                "sprites/lpc-medieval-fantasy-character/our_work/archer/walk_down/00.png"
+            ).into()),
         attack: materials.add(
-            asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/archer/spear_down/05.png").into()),
+            asset_server.load(
+                "sprites/lpc-medieval-fantasy-character/our_work/archer/bow_down/09.png"
+                // "sprites/lpc-medieval-fantasy-character/our_work/archer/spear_down/05.png"
+            ).into()),
         dead: materials.add(
-            asset_server.load("sprites/lpc-medieval-fantasy-character/our_work/archer/die/05.png").into()),
+            asset_server.load(
+                "sprites/lpc-medieval-fantasy-character/our_work/archer/die/05.png"
+            ).into()),
     });
 }
 
 fn spawn_current_enemy(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     sprites: Res<Sprites>,
     fonts: Res<Fonts>,
 ) {
@@ -94,6 +105,24 @@ fn spawn_current_enemy(
     }).insert(EnemyHpDisplay);
 }
 
+fn respawn_current_enemy(
+    mut commands: Commands,
+    fonts: Res<Fonts>,
+    sprites: Res<Sprites>,
+    enemy_query: Query<Entity, With<Enemy>>,
+    enemy_hp_query: Query<Entity, With<EnemyHpDisplay>>,
+) {
+    for entity in enemy_query.single() {
+        commands.entity(entity).despawn();
+    }
+
+    for entity in enemy_hp_query.single() {
+        commands.entity(entity).despawn();
+    }
+
+    spawn_current_enemy(commands, sprites, fonts);
+}
+
 fn enemy_attack(
     mut commands: Commands,
     mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>), With<Enemy>>,
@@ -128,17 +157,48 @@ fn attack_animation(
 }
 
 fn update_enemy_hp(
+    mut commands: Commands,
     mut hp_display: Query<&mut Text, With<EnemyHpDisplay>>,
-    mut enemy: Query<(&Health, &mut Handle<ColorMaterial>), With<Enemy>>,
+    mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>),
+                     With<Enemy>>,
+    respawn_timer_query: Query<&RespawnTimer, With<Enemy>>,
     sprites: Res<Sprites>,
+    time: Res<Time>,
 ) {
-    for (health, mut material) in enemy.single_mut() {
+    for (enemy_entity, health, mut material) in enemy.single_mut() {
         if health.current == 0 {
             *material = sprites.dead.clone();
+            if !respawn_timer_query.single().is_ok() {
+                commands.entity(enemy_entity)
+                    .insert(RespawnTimer {
+                        at: time.time_since_startup() + Duration::from_secs(2),
+                    });
+            }
         }
         for mut text in hp_display.single_mut() {
             text.sections[0].value = format_hp(health.current, health.max);
         }
+    }
+}
+
+fn respawn_timer(
+    mut commands: Commands,
+    fonts: Res<Fonts>,
+    sprites: Res<Sprites>,
+    time: Res<Time>,
+    respawn_query: Query<&RespawnTimer, With<Enemy>>,
+    enemy_query: Query<Entity, With<Enemy>>,
+    enemy_hp_query: Query<Entity, With<EnemyHpDisplay>>,
+) {
+    let timer = respawn_query.single();
+    let timer = match timer.ok() {
+        Some(t) => {
+            t
+        }
+        None => return,
+    };
+    if time.time_since_startup() > timer.at {
+        respawn_current_enemy(commands, fonts, sprites, enemy_query, enemy_hp_query);
     }
 }
 
