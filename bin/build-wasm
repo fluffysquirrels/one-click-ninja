@@ -48,3 +48,8 @@ find "${rust_target_dir}/release" \
 # Copy assets
 cp -r "$asset_dir" "$web_dir"
 
+rm -rf "${web_dir}/assets/sprites/lpc-medieval-fantasy-character/lpc_entry/"
+rm -rf "${web_dir}/assets/sprites/lpc-medieval-fantasy-character/expansion_pack-0.04/"
+
+rm target/web.zip
+find build/web | xargs zip target/web.zip
