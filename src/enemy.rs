@@ -4,7 +4,7 @@ use crate::{
     events::{Damage, EnemyAttackTime, PlayerAttackAction},
     resources::Fonts,
     types::{DamageType, Hp},
-    gamestate::GameState,
+    game_state::GameState,
     loading,
 };
 use rand::Rng;
