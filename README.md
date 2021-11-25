@@ -16,7 +16,8 @@ For native development run `bin/run-dev`.
 
 For web development run `bin/run-wasm`.
 
-To deploy, run `bin/build-wasm` and then upload `target/web.zip` to itch.io.x
+To deploy, run `bin/build-wasm` to build `target/web.zip`, and then
+run `bin/push-wasm` to upload `target/web.zip` to itch.io using `butler`. To install `butler` see [itch.io's documentation](https://itch.io/docs/butler/installing.html).
 
 ## Links
 
