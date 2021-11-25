@@ -7,18 +7,19 @@ mod player;
 mod resources;
 mod systems;
 mod types;
+mod loading;
+mod gamestate;
 
 use bevy::prelude::*;
 use bevy_kira_audio::AudioPlugin;
 use crate::{
     events::{Damage, Die, EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     resources::{Fonts, Icons, Sounds},
+    gamestate::GameState,
 };
 
 #[cfg(feature = "diagnostics")]
 use {
-    std::time::Duration,
-
     bevy::{
         diagnostic::{
             EntityCountDiagnosticsPlugin,
@@ -58,15 +59,24 @@ fn main() {
         .add_event::<PlayerAttackAction>()
         .add_event::<PlayerDefendAction>()
         .add_plugins(DefaultPlugins)
+        .add_state(GameState::Loading)
         .add_plugin(AudioPlugin)
+        .add_plugin(loading::Plugin)
         .add_plugin(action_spinner::Plugin)
         .add_plugin(enemy::Plugin)
         .add_plugin(fight_display::Plugin)
         .add_plugin(player::Plugin)
         .add_plugin(systems::damage::Plugin)
         .add_plugin(systems::despawn_after::Plugin)
-        .add_startup_system(setup.system())
-        .add_startup_system_to_stage(StartupStage::PreStartup, load_resources.system());
+        .add_plugin(systems::setup::Plugin)
+        .add_plugin(systems::menu::Plugin)
+        .add_system_set(
+            SystemSet::on_enter(GameState::Menu)
+                .with_system(setup.system()))
+        .add_system_set(
+            SystemSet::on_enter(GameState::Setup)
+                .with_system(create_resources.system()))
+        ;
 
     #[cfg(feature = "diagnostics")]
     {
@@ -86,27 +96,29 @@ fn main() {
     app.run();
 }
 
-fn load_resources(
+fn create_resources(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    font_assets: Res<loading::FontAssets>,
+    audio_assets: Res<loading::AudioAssets>,
+    texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(Sounds {
-        snare: asset_server.load("sfx/kenney_uiaudio/Audio/click1.ogg"),
-        bass: asset_server.load("sfx/kenney_uiaudio/Audio/click2.ogg"),
+        snare: audio_assets.snare.clone(),
+        bass: audio_assets.bass.clone(),
     });
 
     commands.insert_resource(Icons {
-        attack: materials.add(asset_server.load("sprites/sword.png").into()),
-        defend: materials.add(asset_server.load("sprites/shield.png").into()),
+        attack: materials.add(texture_assets.icon_sword.clone().into()),
+        defend: materials.add(texture_assets.icon_shield.clone().into()),
     });
 
     commands.insert_resource(Fonts {
-        default: asset_server.load("fonts/FiraSans-Bold.ttf"),
+        default: font_assets.fira_sans.clone(),
     });
 
     commands.insert_resource(Background(
-        materials.add(asset_server.load("sprites/david_dawn/background.png").into())));
+        materials.add(texture_assets.background.clone().into())));
 }
 
 fn setup(

@@ -4,6 +4,8 @@ use crate::{
     events::{Damage, EnemyAttackTime, PlayerAttackAction},
     resources::Fonts,
     types::{DamageType, Hp},
+    gamestate::GameState,
+    loading,
 };
 use rand::Rng;
 use std::time::Duration;
@@ -40,65 +42,46 @@ pub const START_HP: Hp = 2;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app
-            .add_startup_system_to_stage(StartupStage::PreStartup, load_resources.system())
-            .add_startup_system(spawn_current_enemy.system())
-            .add_system(enemy_attack.system())
-            .add_system(attack_animation.system())
-            .add_system(update_enemy_hp.system())
-            .add_system(enemy_was_attacked.system())
-            .add_system(respawn_timer.system());
+            .add_system_set(
+                SystemSet::on_enter(GameState::Setup)
+                    .with_system(create_resources.system()))
+            .add_system_set(
+                SystemSet::on_enter(GameState::Playing)
+                    .with_system(spawn_current_enemy.system())
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing)
+                    .with_system(enemy_attack.system())
+                    .with_system(attack_animation.system())
+                    .with_system(update_enemy_hp.system())
+                    .with_system(enemy_was_attacked.system())
+                    .with_system(respawn_timer.system())
+            );
     }
 }
 
-fn load_resources(
+fn create_resources(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(Sprites {
         archer: CharacterSprites {
-            idle: materials.add(
-                asset_server.load(
-                    "sprites/lpc-medieval-fantasy-character/our_work/archer/walk_down/00.png"
-                ).into()),
-            attack: materials.add(
-                asset_server.load(
-                    "sprites/lpc-medieval-fantasy-character/our_work/archer/bow_down/09.png"
-                ).into()),
-            dead: materials.add(
-                asset_server.load(
-                    "sprites/lpc-medieval-fantasy-character/our_work/archer/die/05.png"
-                ).into()),
+            idle: materials.add(texture_assets.archer_idle.clone().into()),
+            attack: materials.add(texture_assets.archer_attack.clone().into()),
+            dead: materials.add(texture_assets.archer_dead.clone().into()),
         },
 
         knight: CharacterSprites {
-            idle: materials.add(
-                asset_server.load(
-                    "sprites/lpc-medieval-fantasy-character/our_work/knight/walk_down/00.png"
-                ).into()),
-            attack: materials.add(
-                asset_server.load(
-                    "sprites/lpc-medieval-fantasy-character/our_work/knight/spear_down/05.png"
-                ).into()),
-            dead: materials.add(
-                asset_server.load(
-                    "sprites/lpc-medieval-fantasy-character/our_work/knight/die/05.png"
-                ).into()),
+            idle: materials.add(texture_assets.knight_idle.clone().into()),
+            attack: materials.add(texture_assets.knight_attack.clone().into()),
+            dead: materials.add(texture_assets.knight_dead.clone().into()),
         },
 
         mage: CharacterSprites {
-            idle: materials.add(
-                asset_server.load(
-                    "sprites/lpc-medieval-fantasy-character/our_work/mage/walk_down/00.png"
-                ).into()),
-            attack: materials.add(
-                asset_server.load(
-                    "sprites/lpc-medieval-fantasy-character/our_work/mage/cast_down/05.png"
-                ).into()),
-            dead: materials.add(
-                asset_server.load(
-                    "sprites/lpc-medieval-fantasy-character/our_work/mage/die/05.png"
-                ).into()),
+            idle: materials.add(texture_assets.mage_idle.clone().into()),
+            attack: materials.add(texture_assets.mage_attack.clone().into()),
+            dead: materials.add(texture_assets.mage_dead.clone().into()),
         }
 
     });

@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use crate::{
     components::{DespawnAfter, Health},
     events::{Die, Damage},
+    gamestate::GameState,
+    loading,
 };
 use std::time::Duration;
 
@@ -17,19 +19,23 @@ pub struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app
-            .add_startup_system_to_stage(StartupStage::PreStartup, load_resources.system())
-            .add_system(process_damage.system());
+            .add_system_set(
+                SystemSet::on_enter(GameState::Setup)
+                    .with_system(create_resources.system()))
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing)
+                    .with_system(process_damage.system()));
     }
 }
 
-fn load_resources(
+fn create_resources(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(DamageSprites {
-        hit: materials.add(asset_server.load("sprites/david_dawn/hit.png").into()),
-        blocked: materials.add(asset_server.load("sprites/david_dawn/blocked.png").into()),
+        hit: materials.add(texture_assets.damage_hit.clone().into()),
+        blocked: materials.add(texture_assets.damage_blocked.clone().into()),
     });
 }
 

@@ -6,6 +6,8 @@ use crate::{
     events::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     Sounds,
     types::{DamageType},
+    gamestate::GameState,
+    loading,
 };
 use std::f32::consts::PI;
 
@@ -29,21 +31,25 @@ pub struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_event::<ButtonPressed>()
-           .add_startup_system(spawn_action_spinner.system())
-           .add_system(spin_action_pointer.system())
-           .add_system(keyboard_input.system())
-           .add_system(choose_action.system());
+            .add_system_set(
+                SystemSet::on_enter(GameState::Setup)
+                    .with_system(create_resources.system()))
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing)
+                   .with_system(spin_action_pointer.system())
+                   .with_system(keyboard_input.system())
+                   .with_system(choose_action.system())
+            );
     }
 }
 
-fn spawn_action_spinner(
+fn create_resources(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let sword_tex = asset_server.load("sprites/sword.png");
     commands.spawn_bundle(SpriteBundle {
-        material: materials.add(sword_tex.into()),
+        material: materials.add(texture_assets.icon_sword.clone().into()),
         transform: Transform {
             translation: Vec3::new(-200., 100., 0.),
             scale: Vec3::ONE * 0.3,
@@ -52,9 +58,8 @@ fn spawn_action_spinner(
         .. Default::default()
     }).insert(ActionIcon { action: Action::AttackSword });
 
-    let shield_tex = asset_server.load("sprites/shield.png");
     commands.spawn_bundle(SpriteBundle {
-        material: materials.add(shield_tex.into()),
+        material: materials.add(texture_assets.icon_shield.clone().into()),
         transform: Transform {
             translation: Vec3::new(-200., -100., 0.),
             scale: Vec3::ONE * 0.3,
@@ -63,9 +68,8 @@ fn spawn_action_spinner(
         .. Default::default()
     }).insert(ActionIcon { action: Action::Defend });
 
-    let magic_tex = asset_server.load("sprites/magic_ball.png");
     commands.spawn_bundle(SpriteBundle {
-        material: materials.add(magic_tex.into()),
+        material: materials.add(texture_assets.icon_magic.clone().into()),
         transform: Transform {
             translation: Vec3::new(-300., 0., 0.),
             scale: Vec3::ONE,
@@ -74,9 +78,8 @@ fn spawn_action_spinner(
         .. Default::default()
     }).insert(ActionIcon { action: Action::AttackMagic });
 
-    let arrow_tex = asset_server.load("sprites/arrow.png");
     commands.spawn_bundle(SpriteBundle {
-        material: materials.add(arrow_tex.into()),
+        material: materials.add(texture_assets.icon_arrow.clone().into()),
         transform: Transform {
             translation: Vec3::new(-100., 0., 0.),
             scale: Vec3::ONE * 0.5,
@@ -85,10 +88,9 @@ fn spawn_action_spinner(
         .. Default::default()
     }).insert(ActionIcon { action: Action::AttackArrow });
 
-    let pointer_tex = asset_server.load("sprites/pointer.png");
     commands.spawn_bundle(SpriteBundle {
         sprite: Sprite::new(Vec2::new(5., 40.)),
-        material: materials.add(pointer_tex.into()),
+        material: materials.add(texture_assets.icon_pointer.clone().into()),
         transform: Transform {
             translation: Vec3::new(-200., 0., 1.),
             .. Default::default()
