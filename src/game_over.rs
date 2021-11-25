@@ -90,11 +90,13 @@ fn on_enter(
 }
 
 fn keyboard_input(
-    kb: Res<Input<KeyCode>>,
+    mut kb: ResMut<Input<KeyCode>>,
     mut state: ResMut<State<GameState>>,
 ) {
     if kb.just_pressed(KeyCode::Space) {
         log::debug!("kb.just_pressed(Space)");
+        // .reset() space so Playing state doesn't think it's already pressed
+        kb.reset(KeyCode::Space);
         state.set(GameState::Playing).unwrap();
     }
 }
