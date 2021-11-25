@@ -48,8 +48,10 @@ find "${rust_target_dir}/release" \
 # Copy assets
 cp -r "$asset_dir" "$web_dir"
 
+# Delete from unnecessary assets to free up space, itch.io only allows 1000 files per .zip.
 rm -rf "${web_dir}/assets/sprites/lpc-medieval-fantasy-character/lpc_entry/"
 rm -rf "${web_dir}/assets/sprites/lpc-medieval-fantasy-character/expansion_pack-0.04/"
+rm -rf ${web_dir}/assets/sprites/lpc-medieval-fantasy-character/our_work/{knight,mage}/bow_*
 
 rm -f target/web.zip
 find build/web | xargs zip target/web.zip
