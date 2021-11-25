@@ -5,6 +5,7 @@ mod events;
 mod fight_display;
 mod player;
 mod resources;
+mod systems;
 mod types;
 
 use bevy::prelude::*;
@@ -33,7 +34,6 @@ use {
 #[cfg(all(feature = "native", feature = "diagnostics"))]
 use bevy::wgpu::diagnostic::WgpuResourceDiagnosticsPlugin;
 
-
 const WIN_W: f32 = 800.;
 const WIN_H: f32 = 600.;
 
@@ -59,14 +59,13 @@ fn main() {
         .add_event::<PlayerDefendAction>()
         .add_plugins(DefaultPlugins)
         .add_plugin(AudioPlugin)
-
         .add_plugin(action_spinner::Plugin)
         .add_plugin(enemy::Plugin)
         .add_plugin(fight_display::Plugin)
         .add_plugin(player::Plugin)
+        .add_plugin(systems::damage::Plugin)
         .add_startup_system(setup.system())
         .add_startup_system_to_stage(StartupStage::PreStartup, load_resources.system())
-        .add_system(process_damage.system())
         .add_system(despawn_after.system());
 
 
@@ -112,85 +111,6 @@ fn load_resources(
     commands.insert_resource(Fonts {
         default: asset_server.load("fonts/FiraSans-Bold.ttf"),
     });
-}
-
-struct DamageDisplay;
-
-fn process_damage(
-    mut commands: Commands,
-    mut damage_reader: EventReader<Damage>,
-    mut die_writer: EventWriter<Die>,
-    mut health_query: Query<(&mut Health, &Transform)>,
-    fonts: Res<Fonts>,
-    time: Res<Time>,
-) {
-    for damage in damage_reader.iter() {
-        let (mut health, health_transform) = match health_query.get_mut(damage.target) {
-            Err(e) => {
-                error!("No Health component for Damage.target entity; error: {}", e);
-                continue;
-            },
-            Ok(h) => h,
-        };
-        if health.vulnerable_to.contains(&damage.damage_type) {
-            // Vulnerable to damage
-            health.current = health.current.checked_sub(damage.hp).unwrap_or(0);
-            if health.current == 0 {
-                die_writer.send(Die {
-                    target: damage.target,
-                });
-            }
-
-            commands.spawn_bundle(Text2dBundle {
-                text: Text::with_section(
-                    "Hit!",
-                    TextStyle {
-                        font: fonts.default.clone(),
-                        font_size: 30.0,
-                        color: Color::RED,
-                    },
-                    TextAlignment {
-                        vertical: VerticalAlign::Center,
-                        horizontal: HorizontalAlign::Center,
-                    },
-                    ),
-                transform: Transform {
-                    translation: health_transform.translation + Vec3::new(100., 0., 0.),
-                    .. Default::default()
-                },
-                .. Default::default()
-            })
-                .insert(DamageDisplay)
-                .insert(DespawnAfter {
-                    after: time.time_since_startup() + Duration::from_millis(300),
-                });
-        } else {
-            // Not vulnerable to damage.
-            commands.spawn_bundle(Text2dBundle {
-                text: Text::with_section(
-                    "Invulnerable!",
-                    TextStyle {
-                        font: fonts.default.clone(),
-                        font_size: 30.0,
-                        color: Color::RED,
-                    },
-                    TextAlignment {
-                        vertical: VerticalAlign::Center,
-                        horizontal: HorizontalAlign::Center,
-                    },
-                    ),
-                transform: Transform {
-                    translation: health_transform.translation + Vec3::new(100., 0., 0.),
-                    .. Default::default()
-                },
-                .. Default::default()
-            })
-                .insert(DamageDisplay)
-                .insert(DespawnAfter {
-                    after: time.time_since_startup() + Duration::from_millis(300),
-                });
-        }
-    }
 }
 
 fn despawn_after(

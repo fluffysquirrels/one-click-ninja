@@ -81,7 +81,7 @@ fn spawn_player(
         .insert_bundle(SpriteBundle {
             material: sprites.idle.clone(),
             transform: Transform {
-                translation: Vec3::new(200., 0., 0.),
+                translation: Vec3::new(100., 0., 0.),
                 scale: Vec3::ONE * 2.0,
                 .. Default::default()
             },
@@ -107,7 +107,7 @@ fn spawn_player_hp(
             },
         ),
         transform: Transform {
-            translation: Vec3::new(200., -200., 0.),
+            translation: Vec3::new(100., -100., 0.),
             .. Default::default()
         },
         .. Default::default()
