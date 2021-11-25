@@ -169,7 +169,7 @@ fn spawn_current_enemy(
 }
 
 fn respawn_current_enemy(
-    mut commands: Commands,
+    commands: Commands,
     fonts: Res<Fonts>,
     sprites: Res<Sprites>,
     enemy_query: Query<Entity, With<Enemy>>,
