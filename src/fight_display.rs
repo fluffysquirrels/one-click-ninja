@@ -5,6 +5,7 @@ use crate::{
     events::Damage,
     events::{EnemyAttackTime, PlayerDefendAction},
     Icons,
+    gamestate::GameState,
 };
 use std::time::Duration;
 
@@ -21,10 +22,13 @@ struct PlayerDefend(bool);
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app
-            .add_system(show_fight_icons.system())
-            .add_system(hide_fight_icons.system())
-            .add_system(record_player_defend.system())
-            .insert_resource(PlayerDefend(false));
+            .insert_resource(PlayerDefend(false))
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing)
+                    .with_system(show_fight_icons.system())
+                    .with_system(hide_fight_icons.system())
+                    .with_system(record_player_defend.system())
+            );
     }
 }
 

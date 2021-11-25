@@ -1,12 +1,17 @@
 use bevy::prelude::*;
-use crate::components::DespawnAfter;
+use crate::{
+    components::DespawnAfter,
+    gamestate::GameState,
+};
 
 pub struct Plugin;
 
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app
-            .add_system(despawn_after.system());
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing)
+                    .with_system(despawn_after.system()));
     }
 }
 
