@@ -16,6 +16,6 @@ impl bevy::app::Plugin for Plugin {
 }
 
 fn setup_done(mut state: ResMut<State<GameState>>) {
-    info!("Menu done");
+    log::info!("Menu done");
     state.set(GameState::Playing).unwrap();
 }

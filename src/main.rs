@@ -43,6 +43,8 @@ fn main() {
         .format_timestamp_micros()
         .init();
 
+    log::info!("main()");
+
     let mut app = App::build();
 
     app
