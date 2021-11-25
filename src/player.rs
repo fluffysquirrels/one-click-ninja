@@ -107,7 +107,7 @@ fn spawn_player_hp(
             },
         ),
         transform: Transform {
-            translation: Vec3::new(100., -100., 0.),
+            translation: Vec3::new(100., -85., 0.),
             .. Default::default()
         },
         .. Default::default()

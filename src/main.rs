@@ -68,7 +68,6 @@ fn main() {
         .add_startup_system_to_stage(StartupStage::PreStartup, load_resources.system())
         .add_system(despawn_after.system());
 
-
     #[cfg(feature = "diagnostics")]
     {
         app
