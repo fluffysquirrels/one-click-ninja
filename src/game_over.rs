@@ -7,6 +7,12 @@ use crate::{
     Sounds,
 };
 
+struct GameOver;
+
+struct Sprites {
+    text: Handle<ColorMaterial>,
+}
+
 pub struct Plugin;
 
 impl bevy::app::Plugin for Plugin {
@@ -26,12 +32,6 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(cleanup.system()))
             ;
     }
-}
-
-struct GameOver;
-
-struct Sprites {
-    text: Handle<ColorMaterial>,
 }
 
 fn create_resources(
