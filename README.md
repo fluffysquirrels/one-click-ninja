@@ -4,6 +4,8 @@ A game for the game jam
 ["1-Button Jam 2021"](https://itch.io/jam/1-button-jam-2021)
 written in Rust with the [Bevy](https://bevyengine.org) engine.
 
+![Game logo with a mage casting spells](./icon.png)
+
 A rhythm game, where you play a soldier that can defend or use one of three attacks per turn against three kinds of enemies, vulnerable only to certain attacks.
 
 You must press the space bar when the action spinner on the left points at one of the options.
