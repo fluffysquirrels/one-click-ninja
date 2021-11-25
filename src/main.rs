@@ -11,7 +11,6 @@ mod types;
 use bevy::prelude::*;
 use bevy_kira_audio::AudioPlugin;
 use crate::{
-    components::{DespawnAfter, Health},
     events::{Damage, Die, EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     resources::{Fonts, Icons, Sounds},
 };
@@ -63,9 +62,9 @@ fn main() {
         .add_plugin(fight_display::Plugin)
         .add_plugin(player::Plugin)
         .add_plugin(systems::damage::Plugin)
+        .add_plugin(systems::despawn_after::Plugin)
         .add_startup_system(setup.system())
-        .add_startup_system_to_stage(StartupStage::PreStartup, load_resources.system())
-        .add_system(despawn_after.system());
+        .add_startup_system_to_stage(StartupStage::PreStartup, load_resources.system());
 
     #[cfg(feature = "diagnostics")]
     {
@@ -83,12 +82,6 @@ fn main() {
     app.add_plugin(bevy_webgl2::WebGL2Plugin);
 
     app.run();
-}
-
-fn setup(
-    mut commands: Commands,
-) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 }
 
 fn load_resources(
@@ -111,15 +104,8 @@ fn load_resources(
     });
 }
 
-fn despawn_after(
+fn setup(
     mut commands: Commands,
-    query: Query<(Entity, &DespawnAfter)>,
-    time: Res<Time>,
 ) {
-    let now = time.time_since_startup();
-    for (entity, despawn_after) in query.iter() {
-        if now > despawn_after.after {
-            commands.entity(entity).despawn();
-        }
-    }
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 }
