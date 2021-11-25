@@ -6,6 +6,7 @@ use bevy_kira_audio::AudioSource;
 pub struct Sounds {
     pub bass: Handle<AudioSource>,
     pub snare: Handle<AudioSource>,
+    pub game_over: Handle<AudioSource>,
 }
 
 pub struct Icons {

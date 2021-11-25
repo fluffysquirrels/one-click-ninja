@@ -24,7 +24,9 @@ struct Sprites {
 }
 
 enum AnimationState {
-    Dead,
+    Dead {
+        until: Duration,
+    },
     Attacking {
         until: Duration,
         damage_type: DamageType
@@ -36,30 +38,25 @@ impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app
             .add_system_set(
-                SystemSet::on_enter(GameState::Playing)
-                    .with_system(spawn_player_hp.system())
-                    .with_system(spawn_player.system())
-            )
-            .add_system_set(
-                SystemSet::on_enter(GameState::Setup)
+                SystemSet::on_enter(GameState::CreateResources)
                     .with_system(create_resources.system()))
             .add_system_set(
+                SystemSet::on_enter(GameState::Playing)
+                    .with_system(spawn_player_hp.system())
+                    .with_system(spawn_player.system()))
+            .add_system_set(
                 SystemSet::on_update(GameState::Playing)
-            //TODO: not sure what to do with this
-            //.add_system_to_stage(CoreStage::PostUpdate, update_player_display.system())
-                    .with_system(update_player_display.system())
-            )
+                    .with_system(update_player_display.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                     .with_system(player_attack.system())
-            );
+                    .with_system(die.system()))
+            ;
     }
 }
 
 fn create_resources(
     mut commands: Commands,
-    font_assets: Res<loading::FontAssets>,
-    audio_assets: Res<loading::AudioAssets>,
     texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
@@ -74,8 +71,13 @@ fn create_resources(
 
 fn spawn_player(
     mut commands: Commands,
+    player_query: Query<Entity, With<Player>>,
     sprites: Res<Sprites>,
 ) {
+    for ent in player_query.iter() {
+        commands.entity(ent).despawn();
+    }
+
     commands
         .spawn()
         .insert(Player)
@@ -98,8 +100,13 @@ fn spawn_player(
 
 fn spawn_player_hp(
     mut commands: Commands,
+    player_hp_query: Query<Entity, With<PlayerHpDisplay>>,
     fonts: Res<Fonts>,
 ) {
+    for ent in player_hp_query.iter() {
+        commands.entity(ent).despawn();
+    }
+
     commands.spawn_bundle(Text2dBundle {
         text: Text::with_section(
             format_hp(START_HP, START_HP),
@@ -136,35 +143,59 @@ fn player_attack(
     }
 }
 
+fn die(
+    mut player: Query<(&mut AnimationState, &Health), With<Player>>,
+    time: Res<Time>,
+) {
+    for (mut anim, health) in player.single_mut() {
+        let dead = health.current == 0;
+        if dead {
+            match *anim {
+                AnimationState::Dead {..} => {},
+                _ => {
+                    // Just died.
+                    *anim = AnimationState::Dead {
+                        until: time.time_since_startup() + Duration::from_secs(2),
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Update visuals from AnimationState
 fn update_player_display(
     mut player: Query<(&mut AnimationState, &Health, &mut Handle<ColorMaterial>), With<Player>>,
     mut display_hp: Query<(&PlayerHpDisplay, &mut Text)>,
+    mut state: ResMut<State<GameState>>,
     sprites: Res<Sprites>,
     time: Res<Time>,
 ) {
     for (mut anim, health, mut mat) in player.single_mut() {
-        let dead = health.current == 0;
-        if dead {
-            *mat = sprites.dead.clone();
-            *anim = AnimationState::Dead;
-        } else {
-            match *anim {
-                AnimationState::Dead => unreachable!(),
-                AnimationState::Attacking {
-                    until, damage_type: ref dt,
-                } if time.time_since_startup() < until => {
-                    *mat = match dt {
-                        DamageType::Arrow => sprites.attack_arrow.clone(),
-                        DamageType::Sword => sprites.attack_sword.clone(),
-                        DamageType::Magic => sprites.attack_magic.clone(),
-                    }
-                },
-                _ => {
-                    *mat = sprites.idle.clone();
-                    *anim = AnimationState::Idle;
-                },
+        match *anim {
+            AnimationState::Dead {
+                until,
+            } => {
+                *mat = sprites.dead.clone();
+                if time.time_since_startup() > until {
+                    state.set(GameState::GameOver).unwrap();
+                }
             }
+            AnimationState::Attacking {
+                until, damage_type: ref dt,
+            } if time.time_since_startup() < until => {
+                *mat = match dt {
+                    DamageType::Arrow => sprites.attack_arrow.clone(),
+                    DamageType::Sword => sprites.attack_sword.clone(),
+                    DamageType::Magic => sprites.attack_magic.clone(),
+                }
+            },
+            _ => {
+                *mat = sprites.idle.clone();
+                *anim = AnimationState::Idle;
+            },
         }
+
         for (_, mut text) in display_hp.single_mut() {
             text.sections[0].value = format_hp(health.current, health.max);
         }

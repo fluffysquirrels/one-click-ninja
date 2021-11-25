@@ -11,7 +11,7 @@ pub struct Plugin;
 impl bevy::prelude::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         // AssetLoader will move to the 2nd gamestate provided here once all assets are loaded
-        AssetLoader::new(GameState::Loading, GameState::Setup)
+        AssetLoader::new(GameState::Loading, GameState::CreateResources)
             .with_collection::<FontAssets>()
             .with_collection::<AudioAssets>()
             .with_collection::<TextureAssets>()
@@ -93,4 +93,7 @@ pub struct TextureAssets {
 
     #[asset(path = "sprites/david_dawn/space_bar_anim.png")]
     pub space_bar_atlas: Handle<Texture>,
+
+    #[asset(path = "sprites/david_dawn/game_over.png")]
+    pub game_over_text: Handle<Texture>,
 }

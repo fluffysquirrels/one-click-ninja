@@ -43,12 +43,11 @@ impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app
             .add_system_set(
-                SystemSet::on_enter(GameState::Setup)
+                SystemSet::on_enter(GameState::CreateResources)
                     .with_system(create_resources.system()))
             .add_system_set(
                 SystemSet::on_enter(GameState::Playing)
-                    .with_system(spawn_current_enemy.system())
-            )
+                    .with_system(spawn_current_enemy.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                     .with_system(enemy_attack.system())
@@ -91,7 +90,17 @@ fn spawn_current_enemy(
     mut commands: Commands,
     sprites: Res<Sprites>,
     fonts: Res<Fonts>,
+    enemy_query: Query<Entity, With<Enemy>>,
+    enemy_hp_query: Query<Entity, With<EnemyHpDisplay>>,
 ) {
+    for entity in enemy_query.single() {
+        commands.entity(entity).despawn();
+    }
+
+    for entity in enemy_hp_query.single() {
+        commands.entity(entity).despawn();
+    }
+
     let character = match rand::thread_rng().gen_range(0..=2) {
         0 => Character::Archer,
         1 => Character::Knight,
@@ -166,15 +175,7 @@ fn respawn_current_enemy(
     enemy_query: Query<Entity, With<Enemy>>,
     enemy_hp_query: Query<Entity, With<EnemyHpDisplay>>,
 ) {
-    for entity in enemy_query.single() {
-        commands.entity(entity).despawn();
-    }
-
-    for entity in enemy_hp_query.single() {
-        commands.entity(entity).despawn();
-    }
-
-    spawn_current_enemy(commands, sprites, fonts);
+    spawn_current_enemy(commands, sprites, fonts, enemy_query, enemy_hp_query);
 }
 
 fn enemy_attack(

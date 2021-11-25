@@ -33,7 +33,7 @@ impl bevy::app::Plugin for Plugin {
         app.add_event::<ButtonPressed>()
             .add_system_set(
                 SystemSet::on_enter(GameState::Setup)
-                    .with_system(create_resources.system()))
+                    .with_system(create_entities.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                    .with_system(spin_action_pointer.system())
@@ -43,7 +43,7 @@ impl bevy::app::Plugin for Plugin {
     }
 }
 
-fn create_resources(
+fn create_entities(
     mut commands: Commands,
     texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,

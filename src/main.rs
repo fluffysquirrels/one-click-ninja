@@ -3,6 +3,7 @@ mod components;
 mod enemy;
 mod events;
 mod fight_display;
+mod game_over;
 mod game_state;
 mod loading;
 mod player;
@@ -67,6 +68,7 @@ fn main() {
         .add_plugin(action_spinner::Plugin)
         .add_plugin(enemy::Plugin)
         .add_plugin(fight_display::Plugin)
+        .add_plugin(game_over::Plugin)
         .add_plugin(player::Plugin)
         .add_plugin(systems::damage::Plugin)
         .add_plugin(systems::despawn_after::Plugin)
@@ -76,7 +78,7 @@ fn main() {
             SystemSet::on_enter(GameState::Menu)
                 .with_system(setup.system()))
         .add_system_set(
-            SystemSet::on_enter(GameState::Setup)
+            SystemSet::on_enter(GameState::CreateResources)
                 .with_system(create_resources.system()))
         ;
 
@@ -108,6 +110,7 @@ fn create_resources(
     commands.insert_resource(Sounds {
         snare: audio_assets.snare.clone(),
         bass: audio_assets.bass.clone(),
+        game_over: audio_assets.game_over.clone(),
     });
 
     commands.insert_resource(Icons {
