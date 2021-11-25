@@ -32,6 +32,8 @@ use {
 #[cfg(all(feature = "native", feature = "diagnostics"))]
 use bevy::wgpu::diagnostic::WgpuResourceDiagnosticsPlugin;
 
+struct Background(Handle<ColorMaterial>);
+
 const WIN_W: f32 = 800.;
 const WIN_H: f32 = 600.;
 
@@ -102,10 +104,19 @@ fn load_resources(
     commands.insert_resource(Fonts {
         default: asset_server.load("fonts/FiraSans-Bold.ttf"),
     });
+
+    commands.insert_resource(Background(
+        materials.add(asset_server.load("sprites/david_dawn/background.png").into())));
 }
 
 fn setup(
     mut commands: Commands,
+    background: Res<Background>,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+
+    commands.spawn_bundle(SpriteBundle {
+        material: background.0.clone(),
+        .. Default::default()
+    });
 }
