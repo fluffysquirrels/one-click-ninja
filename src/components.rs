@@ -1,6 +1,7 @@
 //! Shared components
 
 use crate::types::{DamageType, Hp};
+use std::time::Duration;
 
 pub enum Action {
     AttackArrow,
@@ -29,4 +30,8 @@ pub enum Character {
 
 pub struct AttackType {
     pub damage_type: DamageType,
+}
+
+pub struct DespawnAfter {
+    pub after: Duration,
 }

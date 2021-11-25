@@ -10,10 +10,11 @@ mod types;
 use bevy::prelude::*;
 use bevy_kira_audio::AudioPlugin;
 use crate::{
-    components::Health,
+    components::{DespawnAfter, Health},
     events::{Damage, Die, EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     resources::{Fonts, Icons, Sounds},
 };
+use std::time::Duration;
 
 #[cfg(feature = "diagnostics")]
 use {
@@ -65,7 +66,8 @@ fn main() {
         .add_plugin(player::Plugin)
         .add_startup_system(setup.system())
         .add_startup_system_to_stage(StartupStage::PreStartup, load_resources.system())
-        .add_system(process_damage.system());
+        .add_system(process_damage.system())
+        .add_system(despawn_after.system());
 
 
     #[cfg(feature = "diagnostics")]
@@ -112,13 +114,18 @@ fn load_resources(
     });
 }
 
+struct DamageDisplay;
+
 fn process_damage(
+    mut commands: Commands,
     mut damage_reader: EventReader<Damage>,
     mut die_writer: EventWriter<Die>,
-    mut health_query: Query<&mut Health>,
+    mut health_query: Query<(&mut Health, &Transform)>,
+    fonts: Res<Fonts>,
+    time: Res<Time>,
 ) {
     for damage in damage_reader.iter() {
-        let mut health = match health_query.get_mut(damage.target) {
+        let (mut health, health_transform) = match health_query.get_mut(damage.target) {
             Err(e) => {
                 error!("No Health component for Damage.target entity; error: {}", e);
                 continue;
@@ -126,12 +133,75 @@ fn process_damage(
             Ok(h) => h,
         };
         if health.vulnerable_to.contains(&damage.damage_type) {
+            // Vulnerable to damage
             health.current = health.current.checked_sub(damage.hp).unwrap_or(0);
             if health.current == 0 {
                 die_writer.send(Die {
                     target: damage.target,
                 });
             }
+
+            commands.spawn_bundle(Text2dBundle {
+                text: Text::with_section(
+                    "Hit!",
+                    TextStyle {
+                        font: fonts.default.clone(),
+                        font_size: 30.0,
+                        color: Color::RED,
+                    },
+                    TextAlignment {
+                        vertical: VerticalAlign::Center,
+                        horizontal: HorizontalAlign::Center,
+                    },
+                    ),
+                transform: Transform {
+                    translation: health_transform.translation + Vec3::new(100., 0., 0.),
+                    .. Default::default()
+                },
+                .. Default::default()
+            })
+                .insert(DamageDisplay)
+                .insert(DespawnAfter {
+                    after: time.time_since_startup() + Duration::from_millis(300),
+                });
+        } else {
+            // Not vulnerable to damage.
+            commands.spawn_bundle(Text2dBundle {
+                text: Text::with_section(
+                    "Invulnerable!",
+                    TextStyle {
+                        font: fonts.default.clone(),
+                        font_size: 30.0,
+                        color: Color::RED,
+                    },
+                    TextAlignment {
+                        vertical: VerticalAlign::Center,
+                        horizontal: HorizontalAlign::Center,
+                    },
+                    ),
+                transform: Transform {
+                    translation: health_transform.translation + Vec3::new(100., 0., 0.),
+                    .. Default::default()
+                },
+                .. Default::default()
+            })
+                .insert(DamageDisplay)
+                .insert(DespawnAfter {
+                    after: time.time_since_startup() + Duration::from_millis(300),
+                });
+        }
+    }
+}
+
+fn despawn_after(
+    mut commands: Commands,
+    query: Query<(Entity, &DespawnAfter)>,
+    time: Res<Time>,
+) {
+    let now = time.time_since_startup();
+    for (entity, despawn_after) in query.iter() {
+        if now > despawn_after.after {
+            commands.entity(entity).despawn();
         }
     }
 }
