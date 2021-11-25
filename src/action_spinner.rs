@@ -26,14 +26,18 @@ struct ActionPointer {
 
 struct ButtonPressed;
 
+struct ActionSpinner;
+
+struct PlayerAttackedThisTurn(bool);
+
 pub struct Plugin;
 
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_event::<ButtonPressed>()
             .add_system_set(
-                SystemSet::on_enter(GameState::Setup)
-                    .with_system(create_entities.system()))
+                SystemSet::on_enter(GameState::Playing)
+                    .with_system(spawn_entities.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                    .with_system(spin_action_pointer.system())
@@ -43,11 +47,18 @@ impl bevy::app::Plugin for Plugin {
     }
 }
 
-fn create_entities(
+fn spawn_entities(
     mut commands: Commands,
+    existing_query: Query<Entity, With<ActionSpinner>>,
     texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
+    for ent in existing_query.iter() {
+        commands.entity(ent).despawn();
+    }
+
+    commands.insert_resource(PlayerAttackedThisTurn(false));
+
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(texture_assets.icon_sword.clone().into()),
         transform: Transform {
@@ -56,7 +67,9 @@ fn create_entities(
             .. Default::default()
         },
         .. Default::default()
-    }).insert(ActionIcon { action: Action::AttackSword });
+    })
+        .insert(ActionIcon { action: Action::AttackSword })
+        .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(texture_assets.icon_shield.clone().into()),
@@ -66,7 +79,9 @@ fn create_entities(
             .. Default::default()
         },
         .. Default::default()
-    }).insert(ActionIcon { action: Action::Defend });
+    })
+        .insert(ActionIcon { action: Action::Defend })
+        .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(texture_assets.icon_magic.clone().into()),
@@ -76,7 +91,9 @@ fn create_entities(
             .. Default::default()
         },
         .. Default::default()
-    }).insert(ActionIcon { action: Action::AttackMagic });
+    })
+        .insert(ActionIcon { action: Action::AttackMagic })
+        .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(texture_assets.icon_arrow.clone().into()),
@@ -86,7 +103,9 @@ fn create_entities(
             .. Default::default()
         },
         .. Default::default()
-    }).insert(ActionIcon { action: Action::AttackArrow });
+    })
+        .insert(ActionIcon { action: Action::AttackArrow })
+        .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
         sprite: Sprite::new(Vec2::new(5., 40.)),
@@ -99,7 +118,7 @@ fn create_entities(
     }).insert(ActionPointer {
         angle: 0.,
         speed: -PI * 80. / 60., // 80 bpm
-    });
+    }).insert(ActionSpinner);
 }
 
 const ATTACK_SWORD_ANGLE: f32 = 0.;
@@ -109,11 +128,12 @@ const DEFEND_ANGLE: f32 = PI;
 const ENEMY_ATTACK_ANGLE: f32 = 160. * PI / 180.;
 
 fn spin_action_pointer(
-    time: Res<Time>,
+    mut enemy_attack_time_writer: EventWriter<EnemyAttackTime>,
     mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>,
     audio: Res<Audio>,
     sounds: Res<Sounds>,
-    mut enemy_attack_time_writer: EventWriter<EnemyAttackTime>,
+    time: Res<Time>,
+    mut attacked_this_turn: ResMut<PlayerAttackedThisTurn>,
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
         let old_angle = ap.angle;
@@ -131,7 +151,7 @@ fn spin_action_pointer(
         }
 
         if is_angle_hit(old_angle, new_angle, DEFEND_ANGLE) {
-            trace!("play bass");
+            attacked_this_turn.0 = false;
             audio.play(sounds.bass.clone());
         }
 
@@ -167,7 +187,8 @@ fn choose_action(
     mut attack_writer: EventWriter<PlayerAttackAction>,
     mut defend_writer: EventWriter<PlayerDefendAction>,
     pointer: Query<&ActionPointer>,
-    player: Query<&Health, With<Player>>
+    player: Query<&Health, With<Player>>,
+    mut attacked_this_turn: ResMut<PlayerAttackedThisTurn>,
 ) {
     if button_reader.iter().next().is_some() {
         // Button was pressed
@@ -176,29 +197,30 @@ fn choose_action(
             Ok(health) if health.current > 0 => {
                 let ptr = pointer.single().unwrap();
                 let deg = ptr.angle * 180. / PI;
-                if deg >= 0. && deg <= 20. || deg >= 340. {
-                    let attack = PlayerAttackAction {
-                        damage_type: DamageType::Sword,
-                    };
-                    debug!("choose_action: emit {:?}", attack);
-                    attack_writer.send(attack);
-                } else if deg >= 70. && deg <= 110. {
-                    let attack = PlayerAttackAction {
-                        damage_type: DamageType::Magic,
-                    };
-                    debug!("choose_action: emit {:?}", attack);
-                    attack_writer.send(attack);
-                } else if deg >= 250. && deg <= 290. {
-                    let attack = PlayerAttackAction {
-                        damage_type: DamageType::Arrow,
-                    };
-                    debug!("choose_action: emit {:?}", attack);
-                    attack_writer.send(attack);
-                } else if deg >= 160. && deg <= 200. {
+                if deg >= 160. && deg <= 200. {
                     debug!("choose_action: emit PlayerDefendAction");
                     defend_writer.send(PlayerDefendAction);
-                } else {
-                    // Missed all action icons, do nothing.
+                } else if !attacked_this_turn.0 {
+                    attacked_this_turn.0 = true;
+                    if deg >= 0. && deg <= 20. || deg >= 340. {
+                        let attack = PlayerAttackAction {
+                            damage_type: DamageType::Sword,
+                        };
+                        debug!("choose_action: emit {:?}", attack);
+                        attack_writer.send(attack);
+                    } else if deg >= 70. && deg <= 110. {
+                        let attack = PlayerAttackAction {
+                            damage_type: DamageType::Magic,
+                        };
+                        debug!("choose_action: emit {:?}", attack);
+                        attack_writer.send(attack);
+                    } else if deg >= 250. && deg <= 290. {
+                        let attack = PlayerAttackAction {
+                            damage_type: DamageType::Arrow,
+                        };
+                        debug!("choose_action: emit {:?}", attack);
+                        attack_writer.send(attack);
+                    }
                 }
             },
             _ => {},
