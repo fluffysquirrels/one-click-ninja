@@ -46,7 +46,7 @@ fn spawn_action_spinner(
         material: materials.add(sword_tex.into()),
         transform: Transform {
             translation: Vec3::new(-200., 100., 0.),
-            scale: Vec3::new(0.3, 0.3, 0.3),
+            scale: Vec3::ONE * 0.3,
             .. Default::default()
         },
         .. Default::default()
@@ -57,7 +57,7 @@ fn spawn_action_spinner(
         material: materials.add(shield_tex.into()),
         transform: Transform {
             translation: Vec3::new(-200., -100., 0.),
-            scale: Vec3::new(0.3, 0.3, 0.3),
+            scale: Vec3::ONE * 0.3,
             .. Default::default()
         },
         .. Default::default()
@@ -68,11 +68,22 @@ fn spawn_action_spinner(
         material: materials.add(magic_tex.into()),
         transform: Transform {
             translation: Vec3::new(-300., 0., 0.),
-            scale: Vec3::ONE * 1.,
+            scale: Vec3::ONE,
             .. Default::default()
         },
         .. Default::default()
     }).insert(ActionIcon { action: Action::AttackMagic });
+
+    let arrow_tex = asset_server.load("sprites/arrow.png");
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.add(arrow_tex.into()),
+        transform: Transform {
+            translation: Vec3::new(-100., 0., 0.),
+            scale: Vec3::ONE * 0.5,
+            .. Default::default()
+        },
+        .. Default::default()
+    }).insert(ActionIcon { action: Action::AttackArrow });
 
     let pointer_tex = asset_server.load("sprites/pointer.png");
     commands.spawn_bundle(SpriteBundle {
@@ -89,7 +100,9 @@ fn spawn_action_spinner(
     });
 }
 
-const ATTACK_ANGLE: f32 = 0.;
+const ATTACK_SWORD_ANGLE: f32 = 0.;
+const ATTACK_ARROW_ANGLE: f32 = PI * 1.5;
+const ATTACK_MAGIC_ANGLE: f32 = PI * 0.5;
 const DEFEND_ANGLE: f32 = PI;
 const ENEMY_ATTACK_ANGLE: f32 = 160. * PI / 180.;
 
@@ -103,8 +116,15 @@ fn spin_action_pointer(
     for (mut ap, mut transform) in pointer_pos.single_mut() {
         let old_angle = ap.angle;
         let new_angle = old_angle + time.delta_seconds() * ap.speed;
-        if is_angle_hit(old_angle, new_angle, ATTACK_ANGLE) {
-            trace!("play snare");
+        if is_angle_hit(old_angle, new_angle, ATTACK_SWORD_ANGLE) {
+            audio.play(sounds.snare.clone());
+        }
+
+        if is_angle_hit(old_angle, new_angle, ATTACK_ARROW_ANGLE) {
+            audio.play(sounds.snare.clone());
+        }
+
+        if is_angle_hit(old_angle, new_angle, ATTACK_MAGIC_ANGLE) {
             audio.play(sounds.snare.clone());
         }
 
@@ -163,6 +183,12 @@ fn choose_action(
                 } else if deg >= 70. && deg <= 110. {
                     let attack = PlayerAttackAction {
                         damage_type: DamageType::Magic,
+                    };
+                    debug!("choose_action: emit {:?}", attack);
+                    attack_writer.send(attack);
+                } else if deg >= 250. && deg <= 290. {
+                    let attack = PlayerAttackAction {
+                        damage_type: DamageType::Arrow,
                     };
                     debug!("choose_action: emit {:?}", attack);
                     attack_writer.send(attack);

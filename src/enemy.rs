@@ -139,9 +139,7 @@ fn spawn_current_enemy(
             max: START_HP,
             vulnerable_to:
                 match character {
-                    Character::Archer => vec![DamageType::Arrow,
-                                              DamageType::Magic,
-                                              DamageType::Sword],
+                    Character::Archer => vec![DamageType::Arrow, DamageType::Magic],
                     Character::Knight => vec![DamageType::Magic],
                     Character::Mage   => vec![DamageType::Arrow, DamageType::Sword],
                     Character::Player => unreachable!(),

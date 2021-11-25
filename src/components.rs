@@ -3,6 +3,7 @@
 use crate::types::{DamageType, Hp};
 
 pub enum Action {
+    AttackArrow,
     AttackMagic,
     AttackSword,
     Defend,
