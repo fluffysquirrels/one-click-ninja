@@ -15,7 +15,6 @@ use crate::{
     events::{Damage, Die, EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     resources::{Fonts, Icons, Sounds},
 };
-use std::time::Duration;
 
 #[cfg(feature = "diagnostics")]
 use {

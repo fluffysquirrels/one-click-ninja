@@ -3,7 +3,7 @@ use crate::{
     components::{AttackType, Enemy, Health, Player},
     enemy,
     events::Damage,
-    events::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
+    events::{EnemyAttackTime, PlayerDefendAction},
     Icons,
 };
 use std::time::Duration;
