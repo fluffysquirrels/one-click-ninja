@@ -3,19 +3,19 @@ mod components;
 mod enemy;
 mod events;
 mod fight_display;
+mod game_state;
+mod loading;
 mod player;
 mod resources;
 mod systems;
 mod types;
-mod loading;
-mod gamestate;
 
 use bevy::prelude::*;
 use bevy_kira_audio::AudioPlugin;
 use crate::{
     events::{Damage, Die, EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     resources::{Fonts, Icons, Sounds},
-    gamestate::GameState,
+    game_state::GameState,
 };
 
 #[cfg(feature = "diagnostics")]

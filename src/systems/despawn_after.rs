@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use crate::{
     components::DespawnAfter,
-    gamestate::GameState,
+    game_state::GameState,
 };
 
 pub struct Plugin;

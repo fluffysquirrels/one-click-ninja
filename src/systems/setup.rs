@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::{
-    gamestate::GameState,
+    game_state::GameState,
 };
 
 /// Purely exists to move from Setup to Menu, giving other systems a chance to process resources

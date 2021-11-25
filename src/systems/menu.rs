@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::{
-    gamestate::GameState,
+    game_state::GameState,
 };
 
 /// Should have a menu but currently just goes directly to playing

@@ -4,7 +4,7 @@ use crate::{
     events::PlayerAttackAction,
     resources::Fonts,
     types::{DamageType, Hp},
-    gamestate::GameState,
+    game_state::GameState,
     loading,
 };
 use std::time::Duration;

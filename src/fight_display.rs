@@ -5,7 +5,7 @@ use crate::{
     events::Damage,
     events::{EnemyAttackTime, PlayerDefendAction},
     Icons,
-    gamestate::GameState,
+    game_state::GameState,
 };
 use std::time::Duration;
 

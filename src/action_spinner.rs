@@ -6,7 +6,7 @@ use crate::{
     events::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     Sounds,
     types::{DamageType},
-    gamestate::GameState,
+    game_state::GameState,
     loading,
 };
 use std::f32::consts::PI;

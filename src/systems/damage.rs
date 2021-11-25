@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use crate::{
     components::{DespawnAfter, Health},
     events::{Die, Damage},
-    gamestate::GameState,
+    game_state::GameState,
     loading,
 };
 use std::time::Duration;
