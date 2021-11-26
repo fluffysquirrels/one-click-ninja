@@ -97,6 +97,7 @@ fn spawn_current_enemy(
     enemy_query: Query<Entity, With<Enemy>>,
     enemy_hp_query: Query<Entity, With<EnemyHpDisplay>>,
 ) {
+    // Despawn any entities from previous runs
     for entity in enemy_query.single() {
         commands.entity(entity).despawn();
     }
@@ -118,6 +119,13 @@ fn spawn_current_enemy(
         Character::Player => unreachable!(),
     };
 
+    let start_hp = match character {
+        Character::Archer => 3,
+        Character::Knight => 4,
+        Character::Mage => 2,
+        Character::Player => unreachable!(),
+    };
+
     commands.spawn_bundle(SpriteBundle {
         material: character_sprites.idle.clone(),
         transform: Transform {
@@ -131,8 +139,8 @@ fn spawn_current_enemy(
         .insert(character.clone())
         .insert(character_sprites)
         .insert(Health {
-            current: START_HP,
-            max: START_HP,
+            current: start_hp,
+            max: start_hp,
             vulnerable_to:
                 match character {
                     Character::Archer => vec![DamageType::Arrow, DamageType::Magic],
