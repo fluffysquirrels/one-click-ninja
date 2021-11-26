@@ -13,7 +13,7 @@ pub struct Plugin;
 
 struct PlayerHpDisplay;
 
-const START_HP: Hp = 5;
+const START_HP: Hp = 10;
 
 struct Sprites {
     idle: Handle<ColorMaterial>,

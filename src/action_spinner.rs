@@ -3,13 +3,13 @@ use bevy_kira_audio::Audio;
 
 use crate::{
     components::{Action, Health, Player},
-    events::{EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
+    events::{EnemyAttackTime, MusicTime, PlayerAttackAction, PlayerDefendAction},
     Sounds,
     types::{DamageType},
     game_state::GameState,
     loading,
 };
-use std::f32::consts::PI;
+use std::f64::consts::PI;
 
 struct ActionIcon {
     #[allow(dead_code)] // WIP.
@@ -18,10 +18,7 @@ struct ActionIcon {
 
 struct ActionPointer {
     /// Angle of the pointer in radians
-    angle: f32,
-
-    /// Change of angle per second
-    speed: f32,
+    angle: f64,
 }
 
 struct ButtonPressed;
@@ -117,37 +114,39 @@ fn spawn_entities(
         .. Default::default()
     }).insert(ActionPointer {
         angle: 0.,
-        speed: -PI * 80. / 60., // 80 bpm
     }).insert(ActionSpinner);
 }
 
-const ATTACK_SWORD_ANGLE: f32 = 0.;
-const ATTACK_ARROW_ANGLE: f32 = PI * 1.5;
-const ATTACK_MAGIC_ANGLE: f32 = PI * 0.5;
-const DEFEND_ANGLE: f32 = PI;
-const ENEMY_ATTACK_ANGLE: f32 = 160. * PI / 180.;
+const ATTACK_SWORD_ANGLE: f64 = 0.;
+const ATTACK_ARROW_ANGLE: f64 = PI * 1.5;
+const ATTACK_MAGIC_ANGLE: f64 = PI * 0.5;
+const DEFEND_ANGLE: f64 = PI;
+const ENEMY_ATTACK_ANGLE: f64 = 160. * PI / 180.;
 
 fn spin_action_pointer(
+    mut music_time_reader: EventReader<MusicTime>,
     mut enemy_attack_time_writer: EventWriter<EnemyAttackTime>,
     mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>,
     audio: Res<Audio>,
     sounds: Res<Sounds>,
-    time: Res<Time>,
     mut attacked_this_turn: ResMut<PlayerAttackedThisTurn>,
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
+        let music_time = music_time_reader.iter().last();
         let old_angle = ap.angle;
-        let new_angle = old_angle + time.delta_seconds() * ap.speed;
+        let new_angle =
+            music_time.map(|mt| (PI - mt.beat_in_bar * (1./4.) * 2. * PI).rem_euclid(2. * PI))
+                      .unwrap_or(old_angle);
         if is_angle_hit(old_angle, new_angle, ATTACK_SWORD_ANGLE) {
-            audio.play(sounds.snare.clone());
+            // audio.play(sounds.snare.clone());
         }
 
         if is_angle_hit(old_angle, new_angle, ATTACK_ARROW_ANGLE) {
-            audio.play(sounds.snare.clone());
+            // audio.play(sounds.snare.clone());
         }
 
         if is_angle_hit(old_angle, new_angle, ATTACK_MAGIC_ANGLE) {
-            audio.play(sounds.snare.clone());
+            // audio.play(sounds.snare.clone());
         }
 
         if is_angle_hit(old_angle, new_angle, DEFEND_ANGLE) {
@@ -160,13 +159,19 @@ fn spin_action_pointer(
         }
 
         ap.angle = new_angle.rem_euclid(2. * PI);
-        transform.rotation = Quat::from_rotation_z(ap.angle);
+        transform.rotation = Quat::from_rotation_z(ap.angle as f32);
         trace!("spin_action_pointer: angle deg={}", ap.angle*180./PI);
     }
 }
 
-fn is_angle_hit(old_angle: f32, new_angle: f32, target_angle: f32) -> bool {
-    (old_angle - target_angle).signum() != (new_angle - target_angle).signum()
+fn is_angle_hit(old_angle: f64, new_angle: f64, target_angle: f64) -> bool {
+    let old_angle = if new_angle > old_angle {
+        old_angle + 2. * PI
+    } else {
+        old_angle
+    };
+    (old_angle - target_angle).signum() !=
+        (new_angle - target_angle).signum()
 }
 
 fn keyboard_input(

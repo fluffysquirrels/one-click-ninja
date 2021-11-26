@@ -20,3 +20,9 @@ pub struct Damage {
 pub struct Die {
     pub target: Entity,
 }
+
+#[derive(Debug)]
+pub struct MusicTime {
+    pub loop_position: f64,
+    pub beat_in_bar: f64,
+}

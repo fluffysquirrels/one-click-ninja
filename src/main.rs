@@ -15,7 +15,6 @@ mod types;
 use bevy::prelude::*;
 use bevy_kira_audio::AudioPlugin;
 use crate::{
-    events::{Damage, Die, EnemyAttackTime, PlayerAttackAction, PlayerDefendAction},
     resources::{Fonts, Icons, Sounds},
     game_state::GameState,
 };
@@ -57,11 +56,12 @@ fn main() {
             vsync: true, //Doesn't actually work (at least on linux)
             .. Default::default()
         })
-        .add_event::<Damage>()
-        .add_event::<Die>()
-        .add_event::<EnemyAttackTime>()
-        .add_event::<PlayerAttackAction>()
-        .add_event::<PlayerDefendAction>()
+        .add_event::<events::Damage>()
+        .add_event::<events::Die>()
+        .add_event::<events::EnemyAttackTime>()
+        .add_event::<events::MusicTime>()
+        .add_event::<events::PlayerAttackAction>()
+        .add_event::<events::PlayerDefendAction>()
         .add_plugins(DefaultPlugins)
         .add_state(GameState::Loading)
         .add_plugin(AudioPlugin)
@@ -70,7 +70,7 @@ fn main() {
         .add_plugin(enemy::Plugin)
         .add_plugin(fight_display::Plugin)
         .add_plugin(game_over::Plugin)
-//        .add_plugin(music::Plugin)
+        .add_plugin(music::Plugin)
         .add_plugin(player::Plugin)
         .add_plugin(systems::damage::Plugin)
         .add_plugin(systems::despawn_after::Plugin)

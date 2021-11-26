@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioSource};
 use crate::{
+    events::MusicTime,
     game_state::GameState,
     loading,
 };
@@ -8,11 +9,19 @@ use crate::{
 pub struct Plugin;
 
 struct Sounds {
-    playing_loop: Handle<AudioSource>,
+    playing_loop: TrackSettings,
 }
 
 struct MusicInstance {
     instance: bevy_kira_audio::InstanceHandle,
+    track: TrackSettings,
+}
+
+#[derive(Clone)]
+struct TrackSettings {
+    audio: Handle<AudioSource>,
+    start_offset: f64,
+    bpm: f64,
 }
 
 impl bevy::app::Plugin for Plugin {
@@ -39,7 +48,11 @@ fn create_resources(
     audio_assets: Res<loading::AudioAssets>,
 ) {
     commands.insert_resource(Sounds {
-        playing_loop: audio_assets.playing_loop.clone(),
+        playing_loop: TrackSettings {
+            audio: audio_assets.playing_loop.clone(),
+            start_offset: 0.,
+            bpm: 105.,
+        },
     });
 }
 
@@ -48,16 +61,30 @@ fn start_music(
     audio: Res<Audio>,
     sounds: Res<Sounds>,
 ) {
-    let instance = audio.play_looped(sounds.playing_loop.clone());
+    let track = &sounds.playing_loop;
+    let instance = audio.play_looped(track.audio.clone());
     commands.insert_resource(MusicInstance {
         instance,
+        track: track.clone(),
     });
 }
 
 fn on_update(
+    mut music_time_writer: EventWriter<MusicTime>,
     music_instance: Res<MusicInstance>,
 ) {
-    log::trace!("Music pos: {}", music_instance.instance.position());
+    let track = music_instance.track.clone();
+    let pos = music_instance.instance.position();
+    let beat_secs = 60. / track.bpm;
+    let bar_secs = beat_secs * 4.;
+    let bar_offset = (pos - track.start_offset) % bar_secs;
+    let beat_in_bar = (bar_offset / bar_secs) * 4.;
+    let time = MusicTime {
+        loop_position: pos,
+        beat_in_bar: beat_in_bar,
+    };
+    log::trace!("MusicTime: {:?}", time);
+    music_time_writer.send(time);
 }
 
 fn stop_music(

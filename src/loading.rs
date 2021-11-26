@@ -36,7 +36,7 @@ pub struct AudioAssets {
     pub snare: Handle<AudioSource>,
     #[asset(path = "sfx/kenney_uiaudio/Audio/click2.ogg")]
     pub bass: Handle<AudioSource>,
-    #[asset(path = "sfx/rhythm_loop.ogg")]
+    #[asset(path = "sfx/5_Action_Chiptunes_By_Juhani_Junkala/Level_3.ogg")]
     pub playing_loop: Handle<AudioSource>,
 }
 

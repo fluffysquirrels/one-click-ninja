@@ -1,7 +1,8 @@
 # Asset sources
 
 * `assets/fonts/FiraSans-Bold.ttf` from <https://fonts.google.com/specimen/Fira+Sans>
-* `assets/sfw/countdown.mp3` from David Dawn
+* `assets/sfx/5_Action_Chiptunes_By_Juhani_Junkala` from <https://opengameart.org/content/5-chiptunes-action>
+* `assets/sfx/countdown.mp3` from David Dawn
 * `assets/sfx/kenney_uiaudio` from <https://www.kenney.nl/assets/ui-audio>
 * `assets/sprites/arrow.png` from <https://opengameart.org/content/arrow-0>
 * `assets/sprites/david_dawn/` from David Dawn
