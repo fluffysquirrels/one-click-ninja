@@ -120,6 +120,7 @@ fn create_resources(
         hit: audio_assets.hit.clone(),
         shield: audio_assets.shield.clone(),
         scream: audio_assets.scream.clone(),
+        zombie_death: audio_assets.zombie_death.clone(),
     });
 
     commands.insert_resource(Icons {

@@ -238,6 +238,8 @@ fn update_enemy_hp(
     mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>, &CharacterSprites),
                      With<Enemy>>,
     respawn_timer_query: Query<&RespawnTimer, With<Enemy>>,
+    audio: Res<Audio>,
+    sounds: Res<Sounds>,
     time: Res<Time>,
 ) {
     for (enemy_entity, health, mut material, sprites) in enemy.single_mut() {
@@ -248,6 +250,7 @@ fn update_enemy_hp(
                     .insert(RespawnTimer {
                         at: time.time_since_startup() + Duration::from_secs(2),
                     });
+                audio.play(sounds.zombie_death.clone());
             }
         }
         for mut text in hp_display.single_mut() {

@@ -12,6 +12,7 @@ pub struct Sounds {
     pub hit: Handle<AudioSource>,
     pub shield: Handle<AudioSource>,
     pub scream: Handle<AudioSource>,
+    pub zombie_death: Handle<AudioSource>,
 }
 
 pub struct Icons {
