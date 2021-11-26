@@ -119,6 +119,7 @@ fn create_resources(
         grunt: audio_assets.grunt.clone(),
         hit: audio_assets.hit.clone(),
         shield: audio_assets.shield.clone(),
+        scream: audio_assets.scream.clone(),
     });
 
     commands.insert_resource(Icons {

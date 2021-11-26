@@ -46,6 +46,8 @@ pub struct AudioAssets {
     pub hit: Handle<AudioSource>,
     #[asset(path = "sfx/sword_clash/2.ogg")]
     pub shield: Handle<AudioSource>,
+    #[asset(path = "sfx/aargh/aargh6.ogg")]
+    pub scream: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection)]

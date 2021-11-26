@@ -167,6 +167,8 @@ fn player_attack(
 
 fn die(
     mut player: Query<(&mut AnimationState, &Health), With<Player>>,
+    audio: Res<Audio>,
+    sounds: Res<Sounds>,
     time: Res<Time>,
 ) {
     for (mut anim, health) in player.single_mut() {
@@ -178,7 +180,8 @@ fn die(
                     // Just died.
                     *anim = AnimationState::Dead {
                         until: time.time_since_startup() + Duration::from_secs(2),
-                    }
+                    };
+                    audio.play(sounds.scream.clone());
                 }
             }
         }

@@ -2,6 +2,7 @@
 
 * `assets/fonts/FiraSans-Bold.ttf` from <https://fonts.google.com/specimen/Fira+Sans>
 * `assets/sfx/5_Action_Chiptunes_By_Juhani_Junkala` from <https://opengameart.org/content/5-chiptunes-action>
+* `assets/sfx/aargh` from <https://opengameart.org/content/aargh-male-screams>
 * `assets/sfx/countdown.mp3` from David Dawn
 * `assets/sfx/hits` from <https://opengameart.org/content/37-hitspunches>
 * `assets/sfx/kenney_uiaudio` from <https://www.kenney.nl/assets/ui-audio>
