@@ -2,13 +2,13 @@ use bevy::prelude::*;
 use crate::{
     game_state::GameState,
     loading,
-    resources::Fonts,
 };
 
 struct Menu;
 
 struct Sprites {
     text: Handle<ColorMaterial>,
+    click_here: Handle<ColorMaterial>,
 }
 
 /// Should have a menu but currently just goes directly to playing
@@ -40,12 +40,12 @@ fn create_resources(
 ) {
     commands.insert_resource(Sprites {
         text: materials.add(texture_assets.menu_text.clone().into()),
+        click_here: materials.add(texture_assets.menu_click_here.clone().into()),
     });
 }
 
 fn on_enter(
     mut commands: Commands,
-    fonts: Res<Fonts>,
     sprites: Res<Sprites>,
 ) {
     commands
@@ -61,23 +61,14 @@ fn on_enter(
             .. Default::default()
         });
 
-    commands.spawn()
+    commands
+        .spawn()
         .insert(Menu)
-        .insert_bundle(Text2dBundle {
-            text: Text::with_section(
-                "Click here and press space to start",
-                TextStyle {
-                    font: fonts.default.clone(),
-                    font_size: 30.0,
-                    color: Color::RED,
-                },
-                TextAlignment {
-                    vertical: VerticalAlign::Center,
-                    horizontal: HorizontalAlign::Center,
-                },
-            ),
+        .insert_bundle(SpriteBundle {
+            material: sprites.click_here.clone(),
             transform: Transform {
                 translation: Vec3::new(0., -200., 10.),
+                scale: Vec3::ONE * 0.7,
                 .. Default::default()
             },
             .. Default::default()

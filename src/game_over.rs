@@ -3,13 +3,13 @@ use bevy_kira_audio::Audio;
 use crate::{
     game_state::GameState,
     loading,
-    resources::Fonts,
     Sounds,
 };
 
 struct GameOver;
 
 struct Sprites {
+    press_space: Handle<ColorMaterial>,
     text: Handle<ColorMaterial>,
 }
 
@@ -40,6 +40,7 @@ fn create_resources(
     texture_assets: Res<loading::TextureAssets>,
 ) {
     commands.insert_resource(Sprites {
+        press_space: materials.add(texture_assets.game_over_press_space.clone().into()),
         text: materials.add(texture_assets.game_over_text.clone().into()),
     });
 }
@@ -47,7 +48,6 @@ fn create_resources(
 fn on_enter(
     mut commands: Commands,
     audio: Res<Audio>,
-    fonts: Res<Fonts>,
     sounds: Res<Sounds>,
     sprites: Res<Sprites>,
 ) {
@@ -64,23 +64,14 @@ fn on_enter(
             .. Default::default()
         });
 
-    commands.spawn()
+    commands
+        .spawn()
         .insert(GameOver)
-        .insert_bundle(Text2dBundle {
-            text: Text::with_section(
-                "Press space to restart",
-                TextStyle {
-                    font: fonts.default.clone(),
-                    font_size: 30.0,
-                    color: Color::RED,
-                },
-                TextAlignment {
-                    vertical: VerticalAlign::Center,
-                    horizontal: HorizontalAlign::Center,
-                },
-            ),
+        .insert_bundle(SpriteBundle {
+            material: sprites.press_space.clone(),
             transform: Transform {
                 translation: Vec3::new(0., -150., 10.),
+                scale: Vec3::ONE * 0.7,
                 .. Default::default()
             },
             .. Default::default()

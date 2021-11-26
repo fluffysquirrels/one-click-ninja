@@ -96,7 +96,11 @@ pub struct TextureAssets {
 
     #[asset(path = "sprites/david_dawn/game_over.png")]
     pub game_over_text: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/space_to_restart.png")]
+    pub game_over_press_space: Handle<Texture>,
 
     #[asset(path = "sprites/david_dawn/menu_text.png")]
     pub menu_text: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/click_here.png")]
+    pub menu_click_here: Handle<Texture>,
 }
