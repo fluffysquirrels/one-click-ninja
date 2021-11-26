@@ -52,6 +52,8 @@ cp -r "$asset_dir" "$web_dir"
 rm -rf "${web_dir}/assets/sprites/lpc-medieval-fantasy-character/lpc_entry/"
 rm -rf "${web_dir}/assets/sprites/lpc-medieval-fantasy-character/expansion_pack-0.04/"
 rm -rf ${web_dir}/assets/sprites/lpc-medieval-fantasy-character/our_work/{knight,mage}/bow_*
+rm -rf ${web_dir}/assets/sprites/lpc-medieval-fantasy-character/our_work/{archer,knight,mage}/*_left
+rm -rf ${web_dir}/assets/sprites/lpc-medieval-fantasy-character/our_work/{archer,knight,mage}/*_right
 find "${web_dir}/assets/sfx" \
      -name \*.wav \
      -delete
