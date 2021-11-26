@@ -78,6 +78,7 @@ fn on_enter(
         });
 
     audio.play(sounds.game_over.clone());
+    audio.play_looped(sounds.game_over_loop.clone());
 }
 
 fn keyboard_input(
@@ -95,10 +96,12 @@ fn keyboard_input(
 fn cleanup(
     mut commands: Commands,
     query: Query<Entity, With<GameOver>>,
+    audio: Res<Audio>,
 ) {
     for ent in query.iter() {
         commands
             .entity(ent)
             .despawn();
     }
+    audio.stop();
 }

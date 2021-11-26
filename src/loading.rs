@@ -30,7 +30,7 @@ pub struct FontAssets {
 pub struct AudioAssets {
     #[asset(path = "sfx/countdown.ogg")]
     pub countdown: Handle<AudioSource>,
-    #[asset(path = "sfx/game_over.ogg")]
+    #[asset(path = "sfx/game_over_loud.ogg")]
     pub game_over: Handle<AudioSource>,
     #[asset(path = "sfx/kenney_uiaudio/Audio/click1.ogg")]
     pub snare: Handle<AudioSource>,
@@ -38,6 +38,10 @@ pub struct AudioAssets {
     pub bass: Handle<AudioSource>,
     #[asset(path = "sfx/5_Action_Chiptunes_By_Juhani_Junkala/Level_3.ogg")]
     pub playing_loop: Handle<AudioSource>,
+    #[asset(path = "sfx/game_over_loop.ogg")]
+    pub game_over_loop: Handle<AudioSource>,
+    #[asset(path = "sfx/grunt.ogg")]
+    pub grunt: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection)]

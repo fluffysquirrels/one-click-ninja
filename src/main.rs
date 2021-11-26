@@ -113,6 +113,7 @@ fn create_resources(
         snare: audio_assets.snare.clone(),
         bass: audio_assets.bass.clone(),
         game_over: audio_assets.game_over.clone(),
+        game_over_loop: audio_assets.game_over_loop.clone(),
     });
 
     commands.insert_resource(Icons {

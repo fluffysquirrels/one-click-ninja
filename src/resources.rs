@@ -7,6 +7,7 @@ pub struct Sounds {
     pub bass: Handle<AudioSource>,
     pub snare: Handle<AudioSource>,
     pub game_over: Handle<AudioSource>,
+    pub game_over_loop: Handle<AudioSource>,
 }
 
 pub struct Icons {
