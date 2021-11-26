@@ -448,10 +448,10 @@ dependencies = [
 [[package]]
 name = "bevy_kira_audio"
 version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d050dc30118141e38a978ce9b6e3c2f905a04d4ede89efe9612a1fb15d0cb7c"
+source = "git+https://github.com/fluffysquirrels/bevy_kira_audio?branch=playback_time#762544ac279523c2f3b2f34606d643b2fc9842ee"
 dependencies = [
  "anyhow",
+ "atomic",
  "bevy",
  "bevy_reflect",
  "bevy_utils",

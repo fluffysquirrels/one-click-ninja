@@ -6,6 +6,7 @@ mod fight_display;
 mod game_over;
 mod game_state;
 mod loading;
+mod music;
 mod player;
 mod resources;
 mod systems;
@@ -69,6 +70,7 @@ fn main() {
         .add_plugin(enemy::Plugin)
         .add_plugin(fight_display::Plugin)
         .add_plugin(game_over::Plugin)
+//        .add_plugin(music::Plugin)
         .add_plugin(player::Plugin)
         .add_plugin(systems::damage::Plugin)
         .add_plugin(systems::despawn_after::Plugin)
