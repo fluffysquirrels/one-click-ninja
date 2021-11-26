@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_kira_audio::Audio;
 use crate::{
     components::{AttackType, Enemy, Health, Player},
     enemy,
@@ -6,6 +7,7 @@ use crate::{
     events::{EnemyAttackTime, PlayerDefendAction},
     Icons,
     game_state::GameState,
+    resources::Sounds,
 };
 use std::time::Duration;
 
@@ -46,8 +48,10 @@ fn show_fight_icons(
     mut damage_writer: EventWriter<Damage>,
     player_query: Query<Entity, With<Player>>,
     enemy_query: Query<(&Health, &AttackType), With<Enemy>>,
+    audio: Res<Audio>,
     icons: Res<Icons>,
     mut player_defend: ResMut<PlayerDefend>,
+    sounds: Res<Sounds>,
     time: Res<Time>,
 ) {
     for (enemy_health, enemy_attack_type) in enemy_query.single() {
@@ -69,6 +73,7 @@ fn show_fight_icons(
                 })
                     .insert(FightIcon)
                     .insert(HideAfter { when: time.time_since_startup() + enemy::ATTACK_DURATION });
+                audio.play(sounds.shield.clone());
             } else {
                 // Didn't defend
                 for player_entity in player_query.single() {

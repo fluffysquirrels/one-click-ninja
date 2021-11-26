@@ -1,9 +1,11 @@
 use bevy::prelude::*;
+use bevy_kira_audio::Audio;
 use crate::{
     components::{DespawnAfter, Health},
     events::{Die, Damage, DamageApplied},
     game_state::GameState,
     loading,
+    resources::Sounds,
 };
 use std::time::Duration;
 
@@ -45,7 +47,9 @@ fn process_damage(
     mut damage_applied_writer: EventWriter<DamageApplied>,
     mut die_writer: EventWriter<Die>,
     mut health_query: Query<(&mut Health, &Transform)>,
+    audio: Res<Audio>,
     sprites: Res<DamageSprites>,
+    sounds: Res<Sounds>,
     time: Res<Time>,
 ) {
     for damage in damage_reader.iter() {
@@ -97,6 +101,8 @@ fn process_damage(
                 .insert(DespawnAfter {
                     after: time.time_since_startup() + Duration::from_millis(300),
                 });
+
+            audio.play(sounds.shield.clone());
         }
     }
 }
