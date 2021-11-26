@@ -35,3 +35,11 @@ tracing-wasm = "=0.2.0" #Newer versions broken on bevy 0.5. Fix in 0.6
 
 [patch.crates-io]
 bevy_kira_audio = { git = "https://github.com/fluffysquirrels/bevy_kira_audio", branch = "playback_time" }
+
+# Enable optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
+# Maybe also enable only a small amount of optimization for our code:
+[profile.dev]
+opt-level = 1
