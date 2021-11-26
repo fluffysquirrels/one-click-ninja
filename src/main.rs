@@ -57,6 +57,7 @@ fn main() {
             .. Default::default()
         })
         .add_event::<events::Damage>()
+        .add_event::<events::DamageApplied>()
         .add_event::<events::Die>()
         .add_event::<events::EnemyAttackTime>()
         .add_event::<events::MusicTime>()
@@ -109,11 +110,13 @@ fn create_resources(
     texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
+    // TODO: Should probably just pass audio_assets around.
     commands.insert_resource(Sounds {
         snare: audio_assets.snare.clone(),
         bass: audio_assets.bass.clone(),
         game_over: audio_assets.game_over.clone(),
         game_over_loop: audio_assets.game_over_loop.clone(),
+        grunt: audio_assets.grunt.clone(),
     });
 
     commands.insert_resource(Icons {
@@ -121,6 +124,7 @@ fn create_resources(
         defend: materials.add(texture_assets.icon_shield.clone().into()),
     });
 
+    // TODO: Should probably just pass audio_assets around.
     commands.insert_resource(Fonts {
         default: font_assets.fira_sans.clone(),
     });

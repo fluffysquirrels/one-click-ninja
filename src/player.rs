@@ -1,8 +1,9 @@
 use bevy::prelude::*;
+use bevy_kira_audio::Audio;
 use crate::{
     components::{DespawnAfter, Health, Player},
-    events::PlayerAttackAction,
-    resources::Fonts,
+    events::{DamageApplied, PlayerAttackAction},
+    resources::{Fonts, Sounds},
     types::{DamageType, Hp},
     game_state::GameState,
     loading,
@@ -51,6 +52,7 @@ impl bevy::app::Plugin for Plugin {
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                     .with_system(player_attack.system())
+                    .with_system(player_damage_applied.system())
                     .with_system(die.system()))
             ;
     }
@@ -218,6 +220,22 @@ fn update_player_display(
 
         for (_, mut text) in display_hp.single_mut() {
             text.sections[0].value = format_hp(health.current, health.max);
+        }
+    }
+}
+
+/// TODO: This is O(n) in number of enemies, seems inefficient.
+fn player_damage_applied(
+    mut damage_applied_reader: EventReader<DamageApplied>,
+    player: Query<Entity, With<Player>>,
+    audio: Res<Audio>,
+    sounds: Res<Sounds>,
+) {
+    let player_entity = player.single().unwrap();
+
+    for damage_applied in damage_applied_reader.iter() {
+        if damage_applied.damage.target == player_entity {
+            audio.play(sounds.grunt.clone());
         }
     }
 }

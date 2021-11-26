@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use crate::{
     components::{DespawnAfter, Health},
-    events::{Die, Damage},
+    events::{Die, Damage, DamageApplied},
     game_state::GameState,
     loading,
 };
@@ -42,6 +42,7 @@ fn create_resources(
 fn process_damage(
     mut commands: Commands,
     mut damage_reader: EventReader<Damage>,
+    mut damage_applied_writer: EventWriter<DamageApplied>,
     mut die_writer: EventWriter<Die>,
     mut health_query: Query<(&mut Health, &Transform)>,
     sprites: Res<DamageSprites>,
@@ -56,6 +57,10 @@ fn process_damage(
             Ok(h) => h,
         };
         if health.vulnerable_to.contains(&damage.damage_type) {
+            damage_applied_writer.send(DamageApplied {
+                damage: damage.clone(),
+            });
+
             // Vulnerable to damage
             health.current = health.current.checked_sub(damage.hp).unwrap_or(0);
             if health.current == 0 {

@@ -11,10 +11,18 @@ pub struct PlayerDefendAction;
 
 pub struct EnemyAttackTime;
 
+/// Event representing an attempt to damage an entity with Health component.
+/// May be blocked if the DamageType is incorrect.
+#[derive(Clone)]
 pub struct Damage {
     pub target: Entity,
     pub hp: Hp,
     pub damage_type: DamageType,
+}
+
+/// Event representing some damage that went through.
+pub struct DamageApplied {
+    pub damage: Damage,
 }
 
 pub struct Die {
