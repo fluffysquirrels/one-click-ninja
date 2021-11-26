@@ -1,10 +1,10 @@
 use bevy::prelude::*;
-use bevy_kira_audio::Audio;
+// use bevy_kira_audio::Audio;
 
 use crate::{
     components::{Action, Health, Player},
     events::{EnemyAttackTime, MusicTime, PlayerAttackAction, PlayerDefendAction},
-    Sounds,
+    // Sounds,
     types::{DamageType},
     game_state::GameState,
     loading,
@@ -127,8 +127,8 @@ fn spin_action_pointer(
     mut music_time_reader: EventReader<MusicTime>,
     mut enemy_attack_time_writer: EventWriter<EnemyAttackTime>,
     mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>,
-    audio: Res<Audio>,
-    sounds: Res<Sounds>,
+    // audio: Res<Audio>,
+    // sounds: Res<Sounds>,
     mut attacked_this_turn: ResMut<PlayerAttackedThisTurn>,
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
@@ -151,7 +151,7 @@ fn spin_action_pointer(
 
         if is_angle_hit(old_angle, new_angle, DEFEND_ANGLE) {
             attacked_this_turn.0 = false;
-            audio.play(sounds.bass.clone());
+            // audio.play(sounds.bass.clone());
         }
 
         if is_angle_hit(old_angle, new_angle, ENEMY_ATTACK_ANGLE) {

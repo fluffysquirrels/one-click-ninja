@@ -9,6 +9,7 @@ pub struct Sounds {
     pub game_over: Handle<AudioSource>,
     pub game_over_loop: Handle<AudioSource>,
     pub grunt: Handle<AudioSource>,
+    pub hit: Handle<AudioSource>,
 }
 
 pub struct Icons {

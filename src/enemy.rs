@@ -1,8 +1,9 @@
 use bevy::prelude::*;
+use bevy_kira_audio::Audio;
 use crate::{
     components::{AttackType, Character, DespawnAfter, Enemy, Health},
-    events::{Damage, EnemyAttackTime, PlayerAttackAction},
-    resources::Fonts,
+    events::{Damage, DamageApplied, EnemyAttackTime, PlayerAttackAction},
+    resources::{Fonts, Sounds},
     types::{DamageType, Hp},
     game_state::GameState,
     loading,
@@ -56,6 +57,7 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(update_enemy_hp.system())
                     .with_system(enemy_was_attacked.system())
                     .with_system(respawn_timer.system())
+                    .with_system(damage_applied.system())
             );
     }
 }
@@ -253,6 +255,21 @@ fn update_enemy_hp(
         }
     }
 }
+
+/// TODO: This is O(n) in number of enemies, seems inefficient.
+fn damage_applied(
+    mut damage_applied_reader: EventReader<DamageApplied>,
+    enemy_query: Query<&Enemy>,
+    audio: Res<Audio>,
+    sounds: Res<Sounds>,
+) {
+    for damage_applied in damage_applied_reader.iter() {
+        if let Ok(_enemy) = enemy_query.get(damage_applied.damage.target) {
+            audio.play(sounds.hit.clone());
+        }
+    }
+}
+
 
 fn respawn_timer(
     commands: Commands,

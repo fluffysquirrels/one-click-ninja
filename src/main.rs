@@ -117,6 +117,7 @@ fn create_resources(
         game_over: audio_assets.game_over.clone(),
         game_over_loop: audio_assets.game_over_loop.clone(),
         grunt: audio_assets.grunt.clone(),
+        hit: audio_assets.hit.clone(),
     });
 
     commands.insert_resource(Icons {

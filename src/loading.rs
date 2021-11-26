@@ -42,6 +42,8 @@ pub struct AudioAssets {
     pub game_over_loop: Handle<AudioSource>,
     #[asset(path = "sfx/grunt_loud.ogg")]
     pub grunt: Handle<AudioSource>,
+    #[asset(path = "sfx/hits/hit08.ogg")]
+    pub hit: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection)]
