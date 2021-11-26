@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::{
-    components::{AttackType, Character, Enemy, Health},
+    components::{AttackType, Character, DespawnAfter, Enemy, Health},
     events::{Damage, EnemyAttackTime, PlayerAttackAction},
     resources::Fonts,
     types::{DamageType, Hp},
@@ -23,6 +23,7 @@ struct Sprites {
     archer: CharacterSprites,
     knight: CharacterSprites,
     mage: CharacterSprites,
+    magic_ball: Handle<ColorMaterial>,
 }
 
 struct AttackAnimation {
@@ -81,8 +82,9 @@ fn create_resources(
             idle: materials.add(texture_assets.mage_idle.clone().into()),
             attack: materials.add(texture_assets.mage_attack.clone().into()),
             dead: materials.add(texture_assets.mage_dead.clone().into()),
-        }
+        },
 
+        magic_ball: materials.add(texture_assets.icon_magic.clone().into()),
     });
 }
 
@@ -117,7 +119,7 @@ fn spawn_current_enemy(
     commands.spawn_bundle(SpriteBundle {
         material: character_sprites.idle.clone(),
         transform: Transform {
-            translation: Vec3::new(100., 200., 0.),
+            translation: Vec3::new(100., 200., 1.),
             scale: Vec3::ONE * 2.0,
             .. Default::default()
         },
@@ -161,7 +163,7 @@ fn spawn_current_enemy(
             },
         ),
         transform: Transform {
-            translation: Vec3::new(100., 270., 0.),
+            translation: Vec3::new(100., 270., 2.),
             .. Default::default()
         },
         .. Default::default()
@@ -180,18 +182,35 @@ fn respawn_current_enemy(
 
 fn enemy_attack(
     mut commands: Commands,
-    mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>, &CharacterSprites),
+    mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>, &CharacterSprites,
+                      &AttackType),
                      With<Enemy>>,
     mut attack_time_reader: EventReader<EnemyAttackTime>,
+    sprites: Res<Sprites>,
     time: Res<Time>,
 ) {
-    for (entity, health, mut material, sprites) in enemy.single_mut() {
+    for (entity, health, mut material, char_sprites, attack_type) in enemy.single_mut() {
         if health.current > 0 {
             if attack_time_reader.iter().next().is_some() {
                 commands.entity(entity).insert(AttackAnimation {
                     until: time.time_since_startup() + ATTACK_DURATION,
                 });
-                *material = sprites.attack.clone();
+                *material = char_sprites.attack.clone();
+                if attack_type.damage_type == DamageType::Magic {
+                    commands.spawn()
+                        .insert(DespawnAfter {
+                            after: time.time_since_startup() + Duration::from_millis(300),
+                        })
+                        .insert_bundle(SpriteBundle {
+                            material: sprites.magic_ball.clone(),
+                            transform: Transform {
+                                translation: Vec3::new(100., 250., 5.),
+                                scale: Vec3::ONE * 0.25,
+                                .. Default::default()
+                            },
+                            .. Default::default()
+                        });
+                }
             }
         }
     }

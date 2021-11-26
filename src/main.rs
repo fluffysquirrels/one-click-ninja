@@ -134,6 +134,10 @@ fn setup(
 
     commands.spawn_bundle(SpriteBundle {
         material: background.0.clone(),
+        transform: Transform {
+            translation: Vec3::new(0., 0., 0.),
+            .. Default::default()
+        },
         .. Default::default()
     });
 }

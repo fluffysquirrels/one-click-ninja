@@ -87,7 +87,7 @@ fn spawn_entities(
         material: materials.add(texture_assets.icon_magic.clone().into()),
         transform: Transform {
             translation: Vec3::new(-300., 0., 0.),
-            scale: Vec3::ONE,
+            scale: Vec3::ONE * 0.4,
             .. Default::default()
         },
         .. Default::default()

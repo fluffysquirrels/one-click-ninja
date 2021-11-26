@@ -44,7 +44,7 @@ pub struct TextureAssets {
     pub icon_sword: Handle<Texture>,
     #[asset(path = "sprites/shield.png")]
     pub icon_shield: Handle<Texture>,
-    #[asset(path = "sprites/magic_ball.png")]
+    #[asset(path = "sprites/david_dawn/orb_blue.png")]
     pub icon_magic: Handle<Texture>,
     #[asset(path = "sprites/arrow.png")]
     pub icon_arrow: Handle<Texture>,

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::{
-    components::{Health, Player},
+    components::{DespawnAfter, Health, Player},
     events::PlayerAttackAction,
     resources::Fonts,
     types::{DamageType, Hp},
@@ -21,6 +21,7 @@ struct Sprites {
     attack_magic: Handle<ColorMaterial>,
     attack_sword: Handle<ColorMaterial>,
     dead: Handle<ColorMaterial>,
+    magic_ball: Handle<ColorMaterial>,
 }
 
 enum AnimationState {
@@ -66,6 +67,7 @@ fn create_resources(
         attack_sword: materials.add(texture_assets.player_attack_sword.clone().into()),
         attack_magic: materials.add(texture_assets.player_attack_magic.clone().into()),
         dead: materials.add(texture_assets.player_dead.clone().into()),
+        magic_ball: materials.add(texture_assets.icon_magic.clone().into()),
     });
 }
 
@@ -90,7 +92,7 @@ fn spawn_player(
         .insert_bundle(SpriteBundle {
             material: sprites.idle.clone(),
             transform: Transform {
-                translation: Vec3::new(100., 0., 0.),
+                translation: Vec3::new(100., 0., 2.),
                 scale: Vec3::ONE * 2.0,
                 .. Default::default()
             },
@@ -121,7 +123,7 @@ fn spawn_player_hp(
             },
         ),
         transform: Transform {
-            translation: Vec3::new(100., -85., 0.),
+            translation: Vec3::new(100., -85., 2.),
             .. Default::default()
         },
         .. Default::default()
@@ -129,8 +131,10 @@ fn spawn_player_hp(
 }
 
 fn player_attack(
+    mut commands: Commands,
     mut attack_reader: EventReader<PlayerAttackAction>,
     mut anim_query: Query<&mut AnimationState, With<Player>>,
+    sprites: Res<Sprites>,
     time: Res<Time>,
 ) {
     if let Some(attack) = attack_reader.iter().next() {
@@ -139,6 +143,22 @@ fn player_attack(
                 until: time.time_since_startup() + Duration::from_millis(300),
                 damage_type: attack.damage_type.clone(),
             };
+
+            if attack.damage_type == DamageType::Magic {
+                commands.spawn()
+                    .insert(DespawnAfter {
+                        after: time.time_since_startup() + Duration::from_millis(300),
+                    })
+                    .insert_bundle(SpriteBundle {
+                        material: sprites.magic_ball.clone(),
+                        transform: Transform {
+                            translation: Vec3::new(100., 50., 1.),
+                            scale: Vec3::ONE * 0.25,
+                            .. Default::default()
+                        },
+                        .. Default::default()
+                    });
+            }
         }
     }
 }
