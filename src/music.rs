@@ -45,7 +45,7 @@ impl bevy::app::Plugin for Plugin {
 
 fn create_resources(
     mut commands: Commands,
-    audio_assets: Res<loading::AudioAssets>,
+    audio_assets: Res<loading::Sounds>,
 ) {
     commands.insert_resource(Sounds {
         playing_loop: TrackSettings {

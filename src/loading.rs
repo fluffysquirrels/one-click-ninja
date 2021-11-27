@@ -13,7 +13,7 @@ impl bevy::prelude::Plugin for Plugin {
         // AssetLoader will move to the 2nd gamestate provided here once all assets are loaded
         AssetLoader::new(GameState::Loading, GameState::CreateResources)
             .with_collection::<FontAssets>()
-            .with_collection::<AudioAssets>()
+            .with_collection::<Sounds>()
             .with_collection::<TextureAssets>()
             .with_collection::<CountdownTextures>()
             .build(app);
@@ -28,7 +28,7 @@ pub struct FontAssets {
 }
 
 #[derive(AssetCollection)]
-pub struct AudioAssets {
+pub struct Sounds {
     #[asset(path = "sfx/countdown.ogg")]
     pub countdown: Handle<AudioSource>,
     #[asset(path = "sfx/game_over_loud.ogg")]

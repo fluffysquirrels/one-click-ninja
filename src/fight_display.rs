@@ -7,7 +7,7 @@ use crate::{
     events::{EnemyAttackTime, PlayerDefendAction},
     Icons,
     game_state::GameState,
-    resources::Sounds,
+    loading::Sounds,
 };
 use std::time::Duration;
 

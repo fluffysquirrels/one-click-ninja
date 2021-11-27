@@ -4,8 +4,7 @@ use crate::{
     components::{DespawnAfter, Health},
     events::{Die, Damage, DamageApplied},
     game_state::GameState,
-    loading,
-    resources::Sounds,
+    loading::{self, Sounds},
 };
 use std::time::Duration;
 

@@ -2,8 +2,7 @@ use bevy::prelude::*;
 use bevy_kira_audio::Audio;
 use crate::{
     game_state::GameState,
-    loading,
-    Sounds,
+    loading::{self, Sounds},
 };
 
 struct GameOver;

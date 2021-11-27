@@ -3,7 +3,8 @@ use bevy_kira_audio::Audio;
 use crate::{
     components::{AttackType, Character, DespawnAfter, Enemy, Health},
     events::{Damage, DamageApplied, EnemyAttackTime, PlayerAttackAction},
-    resources::{Fonts, Sounds},
+    loading::Sounds,
+    resources::Fonts,
     types::{DamageType, Hp},
     game_state::GameState,
     loading,
