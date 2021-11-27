@@ -3,6 +3,7 @@
 use crate::types::{DamageType, Hp};
 use std::time::Duration;
 
+#[derive(Eq, PartialEq)]
 pub enum Action {
     AttackArrow,
     AttackMagic,

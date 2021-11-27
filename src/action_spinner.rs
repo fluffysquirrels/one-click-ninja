@@ -12,7 +12,6 @@ use crate::{
 use std::f64::consts::PI;
 
 struct ActionIcon {
-    #[allow(dead_code)] // WIP.
     action: Action,
 }
 
@@ -27,11 +26,26 @@ struct ActionSpinner;
 
 struct PlayerAttackedThisTurn(bool);
 
+struct Icons {
+    pointer: Handle<ColorMaterial>,
+    sword: Handle<ColorMaterial>,
+    shield: Handle<ColorMaterial>,
+    magic: Handle<ColorMaterial>,
+    arrow: Handle<ColorMaterial>,
+    sword_highlight: Handle<ColorMaterial>,
+    shield_highlight: Handle<ColorMaterial>,
+    magic_highlight: Handle<ColorMaterial>,
+    arrow_highlight: Handle<ColorMaterial>,
+}
+
 pub struct Plugin;
 
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_event::<ButtonPressed>()
+            .add_system_set(
+                SystemSet::on_enter(GameState::CreateResources)
+                    .with_system(create_resources.system()))
             .add_system_set(
                 SystemSet::on_enter(GameState::Playing)
                     .with_system(spawn_entities.system()))
@@ -44,11 +58,28 @@ impl bevy::app::Plugin for Plugin {
     }
 }
 
+fn create_resources(
+    mut commands: Commands,
+    texture_assets: Res<loading::TextureAssets>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    commands.insert_resource(Icons {
+        pointer: materials.add(texture_assets.icon_pointer.clone().into()),
+        sword: materials.add(texture_assets.icon_sword.clone().into()),
+        shield: materials.add(texture_assets.icon_shield.clone().into()),
+        magic: materials.add(texture_assets.icon_magic.clone().into()),
+        arrow: materials.add(texture_assets.icon_arrow.clone().into()),
+        sword_highlight: materials.add(texture_assets.icon_sword_highlight.clone().into()),
+        shield_highlight: materials.add(texture_assets.icon_shield_highlight.clone().into()),
+        magic_highlight: materials.add(texture_assets.icon_magic_highlight.clone().into()),
+        arrow_highlight: materials.add(texture_assets.icon_arrow_highlight.clone().into()),
+    });
+}
+
 fn spawn_entities(
     mut commands: Commands,
     existing_query: Query<Entity, With<ActionSpinner>>,
-    texture_assets: Res<loading::TextureAssets>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    icons: Res<Icons>,
 ) {
     for ent in existing_query.iter() {
         commands.entity(ent).despawn();
@@ -57,7 +88,7 @@ fn spawn_entities(
     commands.insert_resource(PlayerAttackedThisTurn(false));
 
     commands.spawn_bundle(SpriteBundle {
-        material: materials.add(texture_assets.icon_sword.clone().into()),
+        material: icons.sword.clone(),
         transform: Transform {
             translation: Vec3::new(-200., 100., 0.),
             scale: Vec3::ONE * 0.3,
@@ -69,7 +100,7 @@ fn spawn_entities(
         .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
-        material: materials.add(texture_assets.icon_shield.clone().into()),
+        material: icons.shield.clone(),
         transform: Transform {
             translation: Vec3::new(-200., -100., 0.),
             scale: Vec3::ONE * 0.3,
@@ -81,7 +112,7 @@ fn spawn_entities(
         .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
-        material: materials.add(texture_assets.icon_magic.clone().into()),
+        material: icons.magic.clone(),
         transform: Transform {
             translation: Vec3::new(-300., 0., 0.),
             scale: Vec3::ONE * 0.4,
@@ -93,7 +124,7 @@ fn spawn_entities(
         .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
-        material: materials.add(texture_assets.icon_arrow.clone().into()),
+        material: icons.arrow.clone(),
         transform: Transform {
             translation: Vec3::new(-100., 0., 0.),
             scale: Vec3::ONE * 0.5,
@@ -106,7 +137,7 @@ fn spawn_entities(
 
     commands.spawn_bundle(SpriteBundle {
         sprite: Sprite::new(Vec2::new(5., 40.)),
-        material: materials.add(texture_assets.icon_pointer.clone().into()),
+        material: icons.pointer.clone(),
         transform: Transform {
             translation: Vec3::new(-200., 0., 1.),
             .. Default::default()
@@ -127,31 +158,37 @@ fn spin_action_pointer(
     mut music_time_reader: EventReader<MusicTime>,
     mut enemy_attack_time_writer: EventWriter<EnemyAttackTime>,
     mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>,
-    // audio: Res<Audio>,
-    // sounds: Res<Sounds>,
     mut attacked_this_turn: ResMut<PlayerAttackedThisTurn>,
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
+
+        // TODO
+        let icons: Vec<ActionIcon> = vec![];
+
         let music_time = music_time_reader.iter().last();
         let old_angle = ap.angle;
         let new_angle =
             music_time.map(|mt| (PI - mt.beat_in_bar * (1./4.) * 2. * PI).rem_euclid(2. * PI))
                       .unwrap_or(old_angle);
-        if is_angle_hit(old_angle, new_angle, ATTACK_SWORD_ANGLE) {
-            // audio.play(sounds.snare.clone());
+
+        if in_angle_range(new_angle, ATTACK_SWORD_ANGLE) {
+            highlight_icon(icons.iter().find(|icon| icon.action == Action::AttackSword));
         }
 
-        if is_angle_hit(old_angle, new_angle, ATTACK_ARROW_ANGLE) {
-            // audio.play(sounds.snare.clone());
+        if in_angle_range(new_angle, ATTACK_ARROW_ANGLE) {
+            highlight_icon(icons.iter().find(|icon| icon.action == Action::AttackArrow));
         }
 
-        if is_angle_hit(old_angle, new_angle, ATTACK_MAGIC_ANGLE) {
-            // audio.play(sounds.snare.clone());
+        if in_angle_range(new_angle, ATTACK_MAGIC_ANGLE) {
+            highlight_icon(icons.iter().find(|icon| icon.action == Action::AttackMagic));
+        }
+
+        if in_angle_range(new_angle, DEFEND_ANGLE) {
+            highlight_icon(icons.iter().find(|icon| icon.action == Action::Defend));
         }
 
         if is_angle_hit(old_angle, new_angle, DEFEND_ANGLE) {
             attacked_this_turn.0 = false;
-            // audio.play(sounds.bass.clone());
         }
 
         if is_angle_hit(old_angle, new_angle, ENEMY_ATTACK_ANGLE) {
@@ -162,6 +199,15 @@ fn spin_action_pointer(
         transform.rotation = Quat::from_rotation_z(ap.angle as f32);
         trace!("spin_action_pointer: angle deg={}", ap.angle*180./PI);
     }
+}
+
+fn in_angle_range(angle: f64, target_angle: f64) -> bool {
+    // TODO
+    false
+}
+
+fn highlight_icon(icon: Option<&ActionIcon>) {
+    // TODO.
 }
 
 fn is_angle_hit(old_angle: f64, new_angle: f64, target_angle: f64) -> bool {

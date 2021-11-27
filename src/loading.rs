@@ -62,6 +62,14 @@ pub struct TextureAssets {
     pub icon_magic: Handle<Texture>,
     #[asset(path = "sprites/arrow.png")]
     pub icon_arrow: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/sword_highlight.png")]
+    pub icon_sword_highlight: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/shield_highlight.png")]
+    pub icon_shield_highlight: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/orb_highlight.png")]
+    pub icon_magic_highlight: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/arrow_highlight.png")]
+    pub icon_arrow_highlight: Handle<Texture>,
     #[asset(path = "sprites/pointer.png")]
     pub icon_pointer: Handle<Texture>,
 
