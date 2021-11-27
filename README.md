@@ -33,7 +33,7 @@ Programming by Alex Helfet and Daniel Benjamin
 
 Art by David Dawn and from OpenGameArt.org
 
-Music by David Dawn and [HYPERMUSIC](https://soundcloud.com/hyperbeammusic)
+Music by David Dawn and [HYPERMUSIC](https://hyper-beam.itch.io/)
 
 ## License
 
