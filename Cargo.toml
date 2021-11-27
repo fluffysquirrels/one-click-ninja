@@ -25,7 +25,7 @@ diagnostics = []
 
 [dependencies]
 bevy = { version = "0.5.0", default-features = false }
-bevy_asset_loader = { version = "0.6.0" }
+bevy_asset_loader = { version = "0.6.0", features = ["sprite"] }
 bevy_kira_audio = { version = "0.6.0" }
 bevy_webgl2 = { version = "0.5.0", optional = true }
 env_logger = "0.9.0"

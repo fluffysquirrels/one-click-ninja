@@ -77,6 +77,7 @@ fn main() {
         .add_plugin(music::Plugin)
         .add_plugin(player::Plugin)
         .add_plugin(systems::animate_sprite_sheet::Plugin)
+        .add_plugin(systems::countdown::Plugin)
         .add_plugin(systems::damage::Plugin)
         .add_plugin(systems::despawn_after::Plugin)
         .add_plugin(systems::setup::Plugin)

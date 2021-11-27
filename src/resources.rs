@@ -23,3 +23,9 @@ pub struct Icons {
 pub struct Fonts {
     pub default: Handle<Font>,
 }
+
+#[derive(Eq, PartialEq)]
+pub enum Countdown {
+    Disabled,
+    Counting,
+}

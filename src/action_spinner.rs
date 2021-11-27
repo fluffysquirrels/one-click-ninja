@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use crate::{
     components::{Action, Health, Player},
     events::{EnemyAttackTime, MusicTime, PlayerAttackAction, PlayerDefendAction},
-    // Sounds,
+    resources::Countdown,
     types::{DamageType},
     game_state::GameState,
     loading,
@@ -182,6 +182,7 @@ fn spin_action_pointer(
     mut enemy_attack_time_writer: EventWriter<EnemyAttackTime>,
     mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>,
     mut icons_query: Query<(&ActionIcon, &mut Handle<ColorMaterial>)>,
+    countdown: Res<Countdown>,
     mut attacked_this_turn: ResMut<PlayerAttackedThisTurn>,
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
@@ -207,7 +208,9 @@ fn spin_action_pointer(
             attacked_this_turn.0 = false;
         }
 
-        if is_angle_hit(old_angle, new_angle, ENEMY_ATTACK_ANGLE) {
+        if *countdown == Countdown::Disabled &&
+            is_angle_hit(old_angle, new_angle, ENEMY_ATTACK_ANGLE)
+        {
             enemy_attack_time_writer.send(EnemyAttackTime);
         }
 
@@ -233,13 +236,13 @@ fn is_angle_hit(old_angle: f64, new_angle: f64, target_angle: f64) -> bool {
 }
 
 fn keyboard_input(
-    // Maybe debounce with Time?
-    // time: Res<Time>,
-
-    kb: Res<Input<KeyCode>>,
     mut button_writer: EventWriter<ButtonPressed>,
+    countdown: Res<Countdown>,
+    kb: Res<Input<KeyCode>>,
 ) {
-    if kb.just_pressed(KeyCode::Space) {
+    if *countdown == Countdown::Disabled &&
+        kb.just_pressed(KeyCode::Space)
+    {
         debug!("keyboard_input: emit ButtonPressed");
         button_writer.send(ButtonPressed);
     }

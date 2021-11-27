@@ -15,6 +15,7 @@ impl bevy::prelude::Plugin for Plugin {
             .with_collection::<FontAssets>()
             .with_collection::<AudioAssets>()
             .with_collection::<TextureAssets>()
+            .with_collection::<CountdownTextures>()
             .build(app);
     }
 }
@@ -130,4 +131,20 @@ pub struct TextureAssets {
     pub menu_text: Handle<Texture>,
     #[asset(path = "sprites/david_dawn/click_here.png")]
     pub menu_click_here: Handle<Texture>,
+}
+
+#[derive(AssetCollection)]
+pub struct CountdownTextures {
+    #[asset(color_material)]
+    #[asset(path = "sprites/david_dawn/countdown/3.png")]
+    pub number_3: Handle<ColorMaterial>,
+    #[asset(color_material)]
+    #[asset(path = "sprites/david_dawn/countdown/2.png")]
+    pub number_2: Handle<ColorMaterial>,
+    #[asset(color_material)]
+    #[asset(path = "sprites/david_dawn/countdown/1.png")]
+    pub number_1: Handle<ColorMaterial>,
+    #[asset(color_material)]
+    #[asset(path = "sprites/david_dawn/countdown/fight.png")]
+    pub fight: Handle<ColorMaterial>,
 }
