@@ -4,7 +4,6 @@ use crate::{
     components::{AnimateSpriteSheet, DespawnAfter, Health, Player},
     events::{DamageApplied, PlayerAttackAction},
     loading::Sounds,
-    resources::Fonts,
     types::{DamageType, Hp},
     game_state::GameState,
     loading,
@@ -13,7 +12,8 @@ use std::time::Duration;
 
 pub struct Plugin;
 
-struct PlayerHpDisplay;
+struct HpBackground;
+struct HpBar;
 
 const START_HP: Hp = 10;
 
@@ -25,6 +25,8 @@ struct Sprites {
     dead: Handle<ColorMaterial>,
     magic_ball: Handle<ColorMaterial>,
     blood_splatter: Handle<TextureAtlas>,
+    health_background: Handle<ColorMaterial>,
+    health_bar: Handle<ColorMaterial>,
 }
 
 enum AnimationState {
@@ -79,6 +81,8 @@ fn create_resources(
                                     6, // columns
                                     1  // rows
                                     )),
+        health_background: materials.add(texture_assets.health_player.clone().into()),
+        health_bar: materials.add(Color::rgb(1., 1., 24./255.).into()),
     });
 }
 
@@ -94,11 +98,7 @@ fn spawn_player(
     commands
         .spawn()
         .insert(Player)
-        .insert(Health {
-            current: START_HP,
-            max: START_HP,
-            vulnerable_to: vec![DamageType::Arrow, DamageType::Magic, DamageType::Sword],
-        })
+        .insert(player_start_health())
         .insert(AnimationState::Idle)
         .insert_bundle(SpriteBundle {
             material: sprites.idle.clone(),
@@ -113,32 +113,41 @@ fn spawn_player(
 
 fn spawn_player_hp(
     mut commands: Commands,
-    player_hp_query: Query<Entity, With<PlayerHpDisplay>>,
-    fonts: Res<Fonts>,
+    hp_bg_query: Query<Entity, With<HpBackground>>,
+    hp_bar_query: Query<Entity, With<HpBar>>,
+    sprites: Res<Sprites>,
 ) {
-    for ent in player_hp_query.iter() {
+    for ent in hp_bg_query.iter() {
         commands.entity(ent).despawn();
     }
 
-    commands.spawn_bundle(Text2dBundle {
-        text: Text::with_section(
-            format_hp(START_HP, START_HP),
-            TextStyle {
-                font: fonts.default.clone(),
-                font_size: 30.0,
-                color: Color::GREEN,
-            },
-            TextAlignment {
-                vertical: VerticalAlign::Center,
-                horizontal: HorizontalAlign::Center,
-            },
-        ),
+    for ent in hp_bar_query.iter() {
+        commands.entity(ent).despawn();
+    }
+
+    commands.spawn_bundle(SpriteBundle {
+        material: sprites.health_background.clone(),
         transform: Transform {
-            translation: Vec3::new(163., -112., 2.),
+            translation: Vec3::new(163., -112., 3.),
             .. Default::default()
         },
         .. Default::default()
-    }).insert(PlayerHpDisplay);
+    }).insert(HpBackground);
+
+    commands.spawn_bundle(SpriteBundle {
+        material: sprites.health_bar.clone(),
+        sprite: Sprite::new(Vec2::new(1.0, 1.0)),
+        transform: health_bar_transform(&player_start_health()),
+        .. Default::default()
+    }).insert(HpBar);
+}
+
+fn player_start_health() -> Health {
+    Health {
+        current: START_HP,
+        max: START_HP,
+        vulnerable_to: vec![DamageType::Arrow, DamageType::Magic, DamageType::Sword],
+    }
 }
 
 fn player_attack(
@@ -200,7 +209,7 @@ fn die(
 /// Update visuals from AnimationState
 fn update_player_display(
     mut player: Query<(&mut AnimationState, &Health, &mut Handle<ColorMaterial>), With<Player>>,
-    mut display_hp: Query<(&PlayerHpDisplay, &mut Text)>,
+    mut hp_display: Query<&mut Transform, With<HpBar>>,
     mut state: ResMut<State<GameState>>,
     sprites: Res<Sprites>,
     time: Res<Time>,
@@ -230,8 +239,8 @@ fn update_player_display(
             },
         }
 
-        for (_, mut text) in display_hp.single_mut() {
-            text.sections[0].value = format_hp(health.current, health.max);
+        for mut hp_transform in hp_display.single_mut() {
+            *hp_transform = health_bar_transform(&health);
         }
     }
 }
@@ -276,6 +285,14 @@ fn player_damage_applied(
     }
 }
 
-fn format_hp(curr_hp: Hp, max_hp: Hp) -> String {
-    format!("Player HP = {}/{}", curr_hp, max_hp)
+fn health_bar_transform(health: &Health) -> Transform {
+    assert!(health.max >= 1);
+    let portion = (health.current as f32) / (health.max as f32);
+    let width_pixels = portion * 162.;
+
+    Transform {
+        translation: Vec3::new(163. - (162. / 2.) + width_pixels / 2., -112., 4.),
+        scale: Vec3::new(width_pixels, 16., 1.),
+        .. Default::default()
+    }
 }

@@ -33,8 +33,8 @@ struct AttackAnimation {
     until: std::time::Duration,
 }
 
-struct EnemyHpBackground;
-struct EnemyHpBar;
+struct HpBackground;
+struct HpBar;
 
 #[derive(Debug)]
 struct RespawnTimer {
@@ -98,8 +98,8 @@ fn spawn_current_enemy(
     mut commands: Commands,
     sprites: Res<Sprites>,
     enemy_query: Query<Entity, With<Enemy>>,
-    enemy_hp_bg_query: Query<Entity, With<EnemyHpBackground>>,
-    enemy_hp_bar_query: Query<Entity, With<EnemyHpBar>>,
+    enemy_hp_bg_query: Query<Entity, With<HpBackground>>,
+    enemy_hp_bar_query: Query<Entity, With<HpBar>>,
 ) {
     // Despawn any entities from previous runs
     for entity in enemy_query.single() {
@@ -168,6 +168,7 @@ fn spawn_current_enemy(
             }
         });
 
+    // Spawn HP bar
     commands.spawn_bundle(SpriteBundle {
         material: sprites.health_background.clone(),
         transform: Transform {
@@ -175,22 +176,22 @@ fn spawn_current_enemy(
             .. Default::default()
         },
         .. Default::default()
-    }).insert(EnemyHpBackground);
+    }).insert(HpBackground);
 
     commands.spawn_bundle(SpriteBundle {
         material: sprites.health_bar.clone(),
         sprite: Sprite::new(Vec2::new(1.0, 1.0)),
         transform: health_bar_transform(&health),
         .. Default::default()
-    }).insert(EnemyHpBar);
+    }).insert(HpBar);
 }
 
 fn respawn_current_enemy(
     commands: Commands,
     sprites: Res<Sprites>,
     enemy_query: Query<Entity, With<Enemy>>,
-    enemy_hp_bg_query: Query<Entity, With<EnemyHpBackground>>,
-    enemy_hp_bar_query: Query<Entity, With<EnemyHpBar>>,
+    enemy_hp_bg_query: Query<Entity, With<HpBackground>>,
+    enemy_hp_bar_query: Query<Entity, With<HpBar>>,
 ) {
     spawn_current_enemy(commands, sprites, enemy_query, enemy_hp_bg_query,
                         enemy_hp_bar_query);
@@ -248,7 +249,7 @@ fn attack_animation(
 
 fn update_enemy_hp(
     mut commands: Commands,
-    mut hp_bar: Query<&mut Transform, With<EnemyHpBar>>,
+    mut hp_bar: Query<&mut Transform, With<HpBar>>,
     mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>, &CharacterSprites),
                      With<Enemy>>,
     respawn_timer_query: Query<&RespawnTimer, With<Enemy>>,
@@ -294,8 +295,8 @@ fn respawn_timer(
     time: Res<Time>,
     respawn_query: Query<&RespawnTimer, With<Enemy>>,
     enemy_query: Query<Entity, With<Enemy>>,
-    enemy_hp_bg_query: Query<Entity, With<EnemyHpBackground>>,
-    enemy_hp_bar_query: Query<Entity, With<EnemyHpBar>>,
+    enemy_hp_bg_query: Query<Entity, With<HpBackground>>,
+    enemy_hp_bar_query: Query<Entity, With<HpBar>>,
 ) {
     let timer = respawn_query.single();
     let timer = match timer.ok() {
