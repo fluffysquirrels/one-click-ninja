@@ -1,7 +1,8 @@
 use bevy::prelude::*;
+use bevy_kira_audio::Audio;
 use crate::{
     game_state::GameState,
-    loading::CountdownTextures,
+    loading::{CountdownTextures, Sounds},
     resources::Countdown,
 };
 use std::time::Duration;
@@ -29,6 +30,8 @@ impl bevy::app::Plugin for Plugin {
 fn setup(
     mut commands: Commands,
     tex: Res<CountdownTextures>,
+    audio: Res<Audio>,
+    sounds: Res<Sounds>,
     time: Res<Time>,
 ) {
     commands.insert_resource(Countdown::Counting);
@@ -45,6 +48,8 @@ fn setup(
         number: 3,
         next_count: time.time_since_startup() + Duration::from_secs(1),
     });
+
+    audio.play(sounds.countdown.clone());
 }
 
 fn show_countdown(

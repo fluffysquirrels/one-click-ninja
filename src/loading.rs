@@ -29,7 +29,7 @@ pub struct FontAssets {
 
 #[derive(AssetCollection)]
 pub struct Sounds {
-    #[asset(path = "sfx/countdown.ogg")]
+    #[asset(path = "sfx/countdown_from_3.ogg")]
     pub countdown: Handle<AudioSource>,
     #[asset(path = "sfx/game_over_loud.ogg")]
     pub game_over: Handle<AudioSource>,
