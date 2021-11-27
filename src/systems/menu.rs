@@ -1,7 +1,8 @@
 use bevy::prelude::*;
+use bevy_kira_audio::Audio;
 use crate::{
     game_state::GameState,
-    loading,
+    loading::{self, Sounds},
 };
 
 struct Menu;
@@ -46,6 +47,8 @@ fn create_resources(
 
 fn on_enter(
     mut commands: Commands,
+    audio: Res<Audio>,
+    sounds: Res<Sounds>,
     sprites: Res<Sprites>,
 ) {
     commands
@@ -73,6 +76,8 @@ fn on_enter(
             },
             .. Default::default()
         });
+
+    audio.play_looped(sounds.main_menu_loop.clone());
 }
 
 fn keyboard_input(
@@ -90,10 +95,13 @@ fn keyboard_input(
 fn cleanup(
     mut commands: Commands,
     query: Query<Entity, With<Menu>>,
+    audio: Res<Audio>,
 ) {
     for ent in query.iter() {
         commands
             .entity(ent)
             .despawn();
     }
+
+    audio.stop();
 }
