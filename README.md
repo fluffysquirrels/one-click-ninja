@@ -6,6 +6,8 @@ written in Rust with the [Bevy](https://bevyengine.org) engine.
 
 ![Game logo with a mage casting spells](./icon.png)
 
+![Screenshot of the game](./screenshot.png)
+
 A rhythm game, where you play a soldier that can defend or use one of three attacks per turn against three kinds of enemies, vulnerable only to certain attacks.
 
 You must press the space bar when the action spinner on the left points at one of the options.
