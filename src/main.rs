@@ -87,6 +87,9 @@ fn main() {
         .add_system_set(
             SystemSet::on_enter(GameState::CreateResources)
                 .with_system(create_resources.system()))
+        .add_system_set(
+            SystemSet::on_enter(GameState::Playing)
+                .with_system(on_enter_playing.system()))
         ;
 
     #[cfg(feature = "diagnostics")]
@@ -157,11 +160,16 @@ fn setup(
         },
         .. Default::default()
     });
+}
 
+fn on_enter_playing(
+    mut commands: Commands,
+    background: Res<Background>,
+) {
     commands.spawn_bundle(SpriteBundle {
         material: background.platform.clone(),
         transform: Transform {
-            translation: Vec3::new(100., 20., 1.),
+            translation: Vec3::new(163., -7., 1.),
             scale: Vec3::ONE * 1.5,
             .. Default::default()
         },

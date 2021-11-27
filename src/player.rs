@@ -102,7 +102,7 @@ fn spawn_player(
         .insert_bundle(SpriteBundle {
             material: sprites.idle.clone(),
             transform: Transform {
-                translation: Vec3::new(100., 0., 3.),
+                translation: Vec3::new(163., -27., 3.),
                 scale: Vec3::ONE * 2.0,
                 .. Default::default()
             },
@@ -133,7 +133,7 @@ fn spawn_player_hp(
             },
         ),
         transform: Transform {
-            translation: Vec3::new(100., -85., 2.),
+            translation: Vec3::new(163., -112., 2.),
             .. Default::default()
         },
         .. Default::default()
@@ -162,7 +162,7 @@ fn player_attack(
                     .insert_bundle(SpriteBundle {
                         material: sprites.magic_ball.clone(),
                         transform: Transform {
-                            translation: Vec3::new(100., 50., 2.),
+                            translation: Vec3::new(163., 23., 2.),
                             scale: Vec3::ONE * 0.25,
                             .. Default::default()
                         },
@@ -259,7 +259,7 @@ fn player_damage_applied(
                 },
                 texture_atlas: sprites.blood_splatter.clone(),
                 transform: Transform {
-                    translation: Vec3::new(100., 0., 3.),
+                    translation: Vec3::new(163., -27., 3.),
                     scale: Vec3::ONE,
                     .. Default::default()
                 },

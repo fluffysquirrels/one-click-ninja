@@ -129,7 +129,7 @@ fn spawn_current_enemy(
     commands.spawn_bundle(SpriteBundle {
         material: character_sprites.idle.clone(),
         transform: Transform {
-            translation: Vec3::new(100., 200., 2.),
+            translation: Vec3::new(163., 173., 2.),
             scale: Vec3::ONE * 2.0,
             .. Default::default()
         },
@@ -173,7 +173,7 @@ fn spawn_current_enemy(
             },
         ),
         transform: Transform {
-            translation: Vec3::new(100., 270., 3.),
+            translation: Vec3::new(163., 243., 3.),
             .. Default::default()
         },
         .. Default::default()
@@ -214,7 +214,7 @@ fn enemy_attack(
                         .insert_bundle(SpriteBundle {
                             material: sprites.magic_ball.clone(),
                             transform: Transform {
-                                translation: Vec3::new(100., 250., 5.),
+                                translation: Vec3::new(163., 223., 5.),
                                 scale: Vec3::ONE * 0.25,
                                 .. Default::default()
                             },
