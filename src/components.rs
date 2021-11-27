@@ -38,3 +38,9 @@ pub struct AttackType {
 pub struct DespawnAfter {
     pub after: Duration,
 }
+
+pub struct AnimateSpriteSheet {
+    pub frame_duration: Duration,
+    pub next_frame_time: Duration,
+    pub max_index: u32,
+}

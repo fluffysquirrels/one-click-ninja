@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_kira_audio::Audio;
 use crate::{
-    components::{DespawnAfter, Health, Player},
+    components::{AnimateSpriteSheet, DespawnAfter, Health, Player},
     events::{DamageApplied, PlayerAttackAction},
     resources::{Fonts, Sounds},
     types::{DamageType, Hp},
@@ -23,6 +23,7 @@ struct Sprites {
     attack_sword: Handle<ColorMaterial>,
     dead: Handle<ColorMaterial>,
     magic_ball: Handle<ColorMaterial>,
+    blood_splatter: Handle<TextureAtlas>,
 }
 
 enum AnimationState {
@@ -62,6 +63,7 @@ fn create_resources(
     mut commands: Commands,
     texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     commands.insert_resource(Sprites {
         idle: materials.add(texture_assets.player_idle.clone().into()),
@@ -70,6 +72,12 @@ fn create_resources(
         attack_magic: materials.add(texture_assets.player_attack_magic.clone().into()),
         dead: materials.add(texture_assets.player_dead.clone().into()),
         magic_ball: materials.add(texture_assets.icon_magic.clone().into()),
+        blood_splatter: texture_atlases.add(
+            TextureAtlas::from_grid(texture_assets.blood_splatter.clone(),
+                                    Vec2::new(70., 51.), // Measure this
+                                    6, // columns
+                                    1  // rows
+                                    )),
     });
 }
 
@@ -229,16 +237,40 @@ fn update_player_display(
 
 /// TODO: This is O(n) in number of enemies, seems inefficient.
 fn player_damage_applied(
+    mut commands: Commands,
     mut damage_applied_reader: EventReader<DamageApplied>,
     player: Query<Entity, With<Player>>,
     audio: Res<Audio>,
     sounds: Res<Sounds>,
+    sprites: Res<Sprites>,
+    time: Res<Time>,
 ) {
     let player_entity = player.single().unwrap();
 
     for damage_applied in damage_applied_reader.iter() {
         if damage_applied.damage.target == player_entity {
             audio.play(sounds.grunt.clone());
+
+            // Spawn blood splatter
+            commands.spawn_bundle(SpriteSheetBundle {
+                sprite: TextureAtlasSprite {
+                    index: 0,
+                    .. Default::default()
+                },
+                texture_atlas: sprites.blood_splatter.clone(),
+                transform: Transform {
+                    translation: Vec3::new(100., 0., 3.),
+                    scale: Vec3::ONE,
+                    .. Default::default()
+                },
+                .. Default::default()
+            }).insert(DespawnAfter {
+                after: time.time_since_startup() + Duration::from_millis(800),
+            }).insert(AnimateSpriteSheet {
+                frame_duration: Duration::from_millis(100),
+                next_frame_time: time.time_since_startup() + Duration::from_millis(100),
+                max_index: 5,
+            });
         }
     }
 }
