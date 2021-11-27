@@ -13,6 +13,10 @@ use std::f64::consts::PI;
 
 struct ActionIcon {
     action: Action,
+    /// Angle in radians for where on the spinner this icon goes.
+    angle: f64,
+    normal_material: Handle<ColorMaterial>,
+    highlight_material: Handle<ColorMaterial>,
 }
 
 struct ActionPointer {
@@ -39,6 +43,10 @@ struct Icons {
 }
 
 pub struct Plugin;
+
+const DEFEND_ANGLE: f64 = PI;
+const ENEMY_ATTACK_ANGLE: f64 = 160. * PI / 180.;
+const ANGLE_FUDGE_RAD: f64 = 20. * PI / 180.;
 
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
@@ -96,7 +104,12 @@ fn spawn_entities(
         },
         .. Default::default()
     })
-        .insert(ActionIcon { action: Action::AttackSword })
+        .insert(ActionIcon {
+            action: Action::AttackSword,
+            angle: 0.,
+            normal_material: icons.sword.clone(),
+            highlight_material: icons.sword_highlight.clone(),
+        })
         .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
@@ -108,7 +121,12 @@ fn spawn_entities(
         },
         .. Default::default()
     })
-        .insert(ActionIcon { action: Action::Defend })
+        .insert(ActionIcon {
+            action: Action::Defend,
+            angle: PI,
+            normal_material: icons.shield.clone(),
+            highlight_material: icons.shield_highlight.clone(),
+        })
         .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
@@ -120,7 +138,12 @@ fn spawn_entities(
         },
         .. Default::default()
     })
-        .insert(ActionIcon { action: Action::AttackMagic })
+        .insert(ActionIcon {
+            action: Action::AttackMagic,
+            angle: PI * 0.5,
+            normal_material: icons.magic.clone(),
+            highlight_material: icons.magic_highlight.clone(),
+        })
         .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
@@ -132,7 +155,12 @@ fn spawn_entities(
         },
         .. Default::default()
     })
-        .insert(ActionIcon { action: Action::AttackArrow })
+        .insert(ActionIcon {
+            action: Action::AttackArrow,
+            angle: PI * 1.5,
+            normal_material: icons.arrow.clone(),
+            highlight_material: icons.arrow_highlight.clone(),
+        })
         .insert(ActionSpinner);
 
     commands.spawn_bundle(SpriteBundle {
@@ -148,22 +176,16 @@ fn spawn_entities(
     }).insert(ActionSpinner);
 }
 
-const ATTACK_SWORD_ANGLE: f64 = 0.;
-const ATTACK_ARROW_ANGLE: f64 = PI * 1.5;
-const ATTACK_MAGIC_ANGLE: f64 = PI * 0.5;
-const DEFEND_ANGLE: f64 = PI;
-const ENEMY_ATTACK_ANGLE: f64 = 160. * PI / 180.;
-
 fn spin_action_pointer(
     mut music_time_reader: EventReader<MusicTime>,
     mut enemy_attack_time_writer: EventWriter<EnemyAttackTime>,
     mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>,
+    mut icons_query: Query<(Entity, &ActionIcon, &mut Handle<ColorMaterial>)>,
     mut attacked_this_turn: ResMut<PlayerAttackedThisTurn>,
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
-
-        // TODO
-        let icons: Vec<ActionIcon> = vec![];
+        let mut icons: Vec<(Entity, &ActionIcon, Mut<Handle<ColorMaterial>>)> =
+            icons_query.iter_mut().collect();
 
         let music_time = music_time_reader.iter().last();
         let old_angle = ap.angle;
@@ -171,20 +193,13 @@ fn spin_action_pointer(
             music_time.map(|mt| (PI - mt.beat_in_bar * (1./4.) * 2. * PI).rem_euclid(2. * PI))
                       .unwrap_or(old_angle);
 
-        if in_angle_range(new_angle, ATTACK_SWORD_ANGLE) {
-            highlight_icon(icons.iter().find(|icon| icon.action == Action::AttackSword));
-        }
-
-        if in_angle_range(new_angle, ATTACK_ARROW_ANGLE) {
-            highlight_icon(icons.iter().find(|icon| icon.action == Action::AttackArrow));
-        }
-
-        if in_angle_range(new_angle, ATTACK_MAGIC_ANGLE) {
-            highlight_icon(icons.iter().find(|icon| icon.action == Action::AttackMagic));
-        }
-
-        if in_angle_range(new_angle, DEFEND_ANGLE) {
-            highlight_icon(icons.iter().find(|icon| icon.action == Action::Defend));
+        for (i_entity, i_icon, i_mat) in icons.iter_mut() {
+            **i_mat =
+                if in_angle_range(new_angle, i_icon.angle) {
+                    i_icon.highlight_material.clone()
+                } else {
+                    i_icon.normal_material.clone()
+                }
         }
 
         if is_angle_hit(old_angle, new_angle, DEFEND_ANGLE) {
@@ -202,12 +217,8 @@ fn spin_action_pointer(
 }
 
 fn in_angle_range(angle: f64, target_angle: f64) -> bool {
-    // TODO
-    false
-}
-
-fn highlight_icon(icon: Option<&ActionIcon>) {
-    // TODO.
+    (angle - target_angle).abs() < ANGLE_FUDGE_RAD
+        || (angle - 2. * PI - target_angle).abs() < ANGLE_FUDGE_RAD
 }
 
 fn is_angle_hit(old_angle: f64, new_angle: f64, target_angle: f64) -> bool {
