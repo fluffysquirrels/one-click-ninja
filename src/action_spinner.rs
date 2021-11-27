@@ -12,6 +12,7 @@ use crate::{
 use std::f64::consts::PI;
 
 struct ActionIcon {
+    #[allow(dead_code)]
     action: Action,
     /// Angle in radians for where on the spinner this icon goes.
     angle: f64,
@@ -180,11 +181,11 @@ fn spin_action_pointer(
     mut music_time_reader: EventReader<MusicTime>,
     mut enemy_attack_time_writer: EventWriter<EnemyAttackTime>,
     mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>,
-    mut icons_query: Query<(Entity, &ActionIcon, &mut Handle<ColorMaterial>)>,
+    mut icons_query: Query<(&ActionIcon, &mut Handle<ColorMaterial>)>,
     mut attacked_this_turn: ResMut<PlayerAttackedThisTurn>,
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
-        let mut icons: Vec<(Entity, &ActionIcon, Mut<Handle<ColorMaterial>>)> =
+        let mut icons: Vec<(&ActionIcon, Mut<Handle<ColorMaterial>>)> =
             icons_query.iter_mut().collect();
 
         let music_time = music_time_reader.iter().last();
@@ -193,7 +194,7 @@ fn spin_action_pointer(
             music_time.map(|mt| (PI - mt.beat_in_bar * (1./4.) * 2. * PI).rem_euclid(2. * PI))
                       .unwrap_or(old_angle);
 
-        for (i_entity, i_icon, i_mat) in icons.iter_mut() {
+        for (i_icon, i_mat) in icons.iter_mut() {
             **i_mat =
                 if in_angle_range(new_angle, i_icon.angle) {
                     i_icon.highlight_material.clone()

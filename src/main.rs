@@ -34,7 +34,10 @@ use {
 #[cfg(all(feature = "native", feature = "diagnostics"))]
 use bevy::wgpu::diagnostic::WgpuResourceDiagnosticsPlugin;
 
-struct Background(Handle<ColorMaterial>);
+struct Background {
+    screen: Handle<ColorMaterial>,
+    platform: Handle<ColorMaterial>,
+}
 
 const WIN_W: f32 = 800.;
 const WIN_H: f32 = 600.;
@@ -133,8 +136,10 @@ fn create_resources(
         default: font_assets.fira_sans.clone(),
     });
 
-    commands.insert_resource(Background(
-        materials.add(texture_assets.background.clone().into())));
+    commands.insert_resource(Background {
+        screen: materials.add(texture_assets.background.clone().into()),
+        platform: materials.add(texture_assets.platform.clone().into()),
+    });
 }
 
 fn setup(
@@ -144,9 +149,19 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     commands.spawn_bundle(SpriteBundle {
-        material: background.0.clone(),
+        material: background.screen.clone(),
         transform: Transform {
             translation: Vec3::new(0., 0., 0.),
+            .. Default::default()
+        },
+        .. Default::default()
+    });
+
+    commands.spawn_bundle(SpriteBundle {
+        material: background.platform.clone(),
+        transform: Transform {
+            translation: Vec3::new(100., 20., 1.),
+            scale: Vec3::ONE * 1.5,
             .. Default::default()
         },
         .. Default::default()

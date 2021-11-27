@@ -112,6 +112,8 @@ pub struct TextureAssets {
 
     #[asset(path = "sprites/david_dawn/background.png")]
     pub background: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/platform.png")]
+    pub platform: Handle<Texture>,
 
     #[asset(path = "sprites/david_dawn/space_bar_anim.png")]
     pub space_bar_atlas: Handle<Texture>,

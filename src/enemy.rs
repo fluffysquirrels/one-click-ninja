@@ -129,7 +129,7 @@ fn spawn_current_enemy(
     commands.spawn_bundle(SpriteBundle {
         material: character_sprites.idle.clone(),
         transform: Transform {
-            translation: Vec3::new(100., 200., 1.),
+            translation: Vec3::new(100., 200., 2.),
             scale: Vec3::ONE * 2.0,
             .. Default::default()
         },
@@ -173,7 +173,7 @@ fn spawn_current_enemy(
             },
         ),
         transform: Transform {
-            translation: Vec3::new(100., 270., 2.),
+            translation: Vec3::new(100., 270., 3.),
             .. Default::default()
         },
         .. Default::default()

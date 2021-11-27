@@ -94,7 +94,7 @@ fn spawn_player(
         .insert_bundle(SpriteBundle {
             material: sprites.idle.clone(),
             transform: Transform {
-                translation: Vec3::new(100., 0., 2.),
+                translation: Vec3::new(100., 0., 3.),
                 scale: Vec3::ONE * 2.0,
                 .. Default::default()
             },
@@ -154,7 +154,7 @@ fn player_attack(
                     .insert_bundle(SpriteBundle {
                         material: sprites.magic_ball.clone(),
                         transform: Transform {
-                            translation: Vec3::new(100., 50., 1.),
+                            translation: Vec3::new(100., 50., 2.),
                             scale: Vec3::ONE * 0.25,
                             .. Default::default()
                         },
