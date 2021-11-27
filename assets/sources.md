@@ -5,6 +5,7 @@
 * `assets/sfx/aargh` from <https://opengameart.org/content/aargh-male-screams>
 * `assets/sfx/countdown.mp3` from David Dawn
 * `assets/sfx/hits` from <https://opengameart.org/content/37-hitspunches>
+* `assets/sfx/hyperbeam_-_ninja_song.ogg` from HYPERBEAM at <https://soundcloud.com/hyperbeammusic>
 * `assets/sfx/kenney_uiaudio` from <https://www.kenney.nl/assets/ui-audio>
 * `assets/sfx/sword_clash` from <https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes>
 * `assets/sfx/zombies` from <https://opengameart.org/content/zombies-sound-pack>

@@ -51,7 +51,7 @@ fn create_resources(
         playing_loop: TrackSettings {
             audio: audio_assets.playing_loop.clone(),
             start_offset: 0.,
-            bpm: 105.,
+            bpm: 160.,
         },
     });
 }
