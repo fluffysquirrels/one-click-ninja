@@ -13,6 +13,7 @@ pub enum Action {
 
 pub struct Enemy;
 
+#[derive(Clone)]
 pub struct Health {
     pub current: Hp,
     pub max: Hp,

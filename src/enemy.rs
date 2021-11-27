@@ -4,8 +4,7 @@ use crate::{
     components::{AttackType, Character, DespawnAfter, Enemy, Health},
     events::{Damage, DamageApplied, EnemyAttackTime, PlayerAttackAction},
     loading::Sounds,
-    resources::Fonts,
-    types::{DamageType, Hp},
+    types::DamageType,
     game_state::GameState,
     loading,
 };
@@ -26,13 +25,16 @@ struct Sprites {
     knight: CharacterSprites,
     mage: CharacterSprites,
     magic_ball: Handle<ColorMaterial>,
+    health_background: Handle<ColorMaterial>,
+    health_bar: Handle<ColorMaterial>,
 }
 
 struct AttackAnimation {
     until: std::time::Duration,
 }
 
-struct EnemyHpDisplay;
+struct EnemyHpBackground;
+struct EnemyHpBar;
 
 #[derive(Debug)]
 struct RespawnTimer {
@@ -40,7 +42,6 @@ struct RespawnTimer {
 }
 
 pub const ATTACK_DURATION: Duration = Duration::from_millis(300);
-pub const START_HP: Hp = 2;
 
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
@@ -88,22 +89,28 @@ fn create_resources(
         },
 
         magic_ball: materials.add(texture_assets.icon_magic.clone().into()),
+        health_background: materials.add(texture_assets.health_enemy.clone().into()),
+        health_bar: materials.add(Color::rgb(1.0, 0., 242./255.).into()),
     });
 }
 
 fn spawn_current_enemy(
     mut commands: Commands,
     sprites: Res<Sprites>,
-    fonts: Res<Fonts>,
     enemy_query: Query<Entity, With<Enemy>>,
-    enemy_hp_query: Query<Entity, With<EnemyHpDisplay>>,
+    enemy_hp_bg_query: Query<Entity, With<EnemyHpBackground>>,
+    enemy_hp_bar_query: Query<Entity, With<EnemyHpBar>>,
 ) {
     // Despawn any entities from previous runs
     for entity in enemy_query.single() {
         commands.entity(entity).despawn();
     }
 
-    for entity in enemy_hp_query.single() {
+    for entity in enemy_hp_bg_query.single() {
+        commands.entity(entity).despawn();
+    }
+
+    for entity in enemy_hp_bar_query.single() {
         commands.entity(entity).despawn();
     }
 
@@ -127,6 +134,18 @@ fn spawn_current_enemy(
         Character::Player => unreachable!(),
     };
 
+    let health = Health {
+        current: start_hp,
+        max: start_hp,
+        vulnerable_to:
+        match character {
+            Character::Archer => vec![DamageType::Arrow, DamageType::Magic],
+            Character::Knight => vec![DamageType::Magic],
+            Character::Mage   => vec![DamageType::Arrow, DamageType::Sword],
+            Character::Player => unreachable!(),
+        }
+        ,
+    };
     commands.spawn_bundle(SpriteBundle {
         material: character_sprites.idle.clone(),
         transform: Transform {
@@ -139,18 +158,7 @@ fn spawn_current_enemy(
         .insert(Enemy)
         .insert(character.clone())
         .insert(character_sprites)
-        .insert(Health {
-            current: start_hp,
-            max: start_hp,
-            vulnerable_to:
-                match character {
-                    Character::Archer => vec![DamageType::Arrow, DamageType::Magic],
-                    Character::Knight => vec![DamageType::Magic],
-                    Character::Mage   => vec![DamageType::Arrow, DamageType::Sword],
-                    Character::Player => unreachable!(),
-                }
-            ,
-        })
+        .insert(health.clone())
         .insert(AttackType { damage_type:
             match character {
                 Character::Archer => DamageType::Arrow,
@@ -160,35 +168,32 @@ fn spawn_current_enemy(
             }
         });
 
-    commands.spawn_bundle(Text2dBundle {
-        text: Text::with_section(
-            format_hp(START_HP, START_HP),
-            TextStyle {
-                font: fonts.default.clone(),
-                font_size: 30.0,
-                color: Color::RED,
-            },
-            TextAlignment {
-                vertical: VerticalAlign::Center,
-                horizontal: HorizontalAlign::Center,
-            },
-        ),
+    commands.spawn_bundle(SpriteBundle {
+        material: sprites.health_background.clone(),
         transform: Transform {
             translation: Vec3::new(163., 243., 3.),
             .. Default::default()
         },
         .. Default::default()
-    }).insert(EnemyHpDisplay);
+    }).insert(EnemyHpBackground);
+
+    commands.spawn_bundle(SpriteBundle {
+        material: sprites.health_bar.clone(),
+        sprite: Sprite::new(Vec2::new(1.0, 1.0)),
+        transform: health_bar_transform(&health),
+        .. Default::default()
+    }).insert(EnemyHpBar);
 }
 
 fn respawn_current_enemy(
     commands: Commands,
-    fonts: Res<Fonts>,
     sprites: Res<Sprites>,
     enemy_query: Query<Entity, With<Enemy>>,
-    enemy_hp_query: Query<Entity, With<EnemyHpDisplay>>,
+    enemy_hp_bg_query: Query<Entity, With<EnemyHpBackground>>,
+    enemy_hp_bar_query: Query<Entity, With<EnemyHpBar>>,
 ) {
-    spawn_current_enemy(commands, sprites, fonts, enemy_query, enemy_hp_query);
+    spawn_current_enemy(commands, sprites, enemy_query, enemy_hp_bg_query,
+                        enemy_hp_bar_query);
 }
 
 fn enemy_attack(
@@ -243,7 +248,7 @@ fn attack_animation(
 
 fn update_enemy_hp(
     mut commands: Commands,
-    mut hp_display: Query<&mut Text, With<EnemyHpDisplay>>,
+    mut hp_bar: Query<&mut Transform, With<EnemyHpBar>>,
     mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>, &CharacterSprites),
                      With<Enemy>>,
     respawn_timer_query: Query<&RespawnTimer, With<Enemy>>,
@@ -262,9 +267,9 @@ fn update_enemy_hp(
                 audio.play(sounds.zombie_death.clone());
             }
         }
-        for mut text in hp_display.single_mut() {
-            text.sections[0].value = format_hp(health.current, health.max);
-        }
+         for mut hp_transform in hp_bar.single_mut() {
+             *hp_transform = health_bar_transform(health);
+         }
     }
 }
 
@@ -285,12 +290,12 @@ fn damage_applied(
 
 fn respawn_timer(
     commands: Commands,
-    fonts: Res<Fonts>,
     sprites: Res<Sprites>,
     time: Res<Time>,
     respawn_query: Query<&RespawnTimer, With<Enemy>>,
     enemy_query: Query<Entity, With<Enemy>>,
-    enemy_hp_query: Query<Entity, With<EnemyHpDisplay>>,
+    enemy_hp_bg_query: Query<Entity, With<EnemyHpBackground>>,
+    enemy_hp_bar_query: Query<Entity, With<EnemyHpBar>>,
 ) {
     let timer = respawn_query.single();
     let timer = match timer.ok() {
@@ -300,7 +305,8 @@ fn respawn_timer(
         None => return,
     };
     if time.time_since_startup() > timer.at {
-        respawn_current_enemy(commands, fonts, sprites, enemy_query, enemy_hp_query);
+        respawn_current_enemy(commands, sprites, enemy_query, enemy_hp_bg_query,
+                              enemy_hp_bar_query);
     }
 }
 
@@ -320,6 +326,14 @@ fn enemy_was_attacked(
     }
 }
 
-fn format_hp(curr_hp: Hp, max_hp: Hp) -> String {
-    format!("Enemy HP = {}/{}", curr_hp, max_hp)
+fn health_bar_transform(health: &Health) -> Transform {
+    assert!(health.max >= 1);
+    let portion = (health.current as f32) / (health.max as f32);
+    let width_pixels = portion * 162.;
+
+    Transform {
+        translation: Vec3::new(163. - (162. / 2.) + width_pixels / 2., 243., 4.),
+        scale: Vec3::new(width_pixels, 16., 1.),
+        .. Default::default()
+    }
 }
