@@ -65,7 +65,7 @@ fn show_fight_icons(
                 commands.spawn_bundle(SpriteBundle {
                     material: icons.defend.clone(),
                     transform: Transform {
-                        translation: Vec3::new(200., 100., 0.),
+                        translation: Vec3::new(200., 100., 2.),
                         scale: Vec3::ONE * 0.15,
                         .. Default::default()
                     },
@@ -88,7 +88,7 @@ fn show_fight_icons(
             commands.spawn_bundle(SpriteBundle {
                 material: icons.attack.clone(),
                 transform: Transform {
-                    translation: Vec3::new(250., 100., 0.),
+                    translation: Vec3::new(250., 100., 2.),
                     scale: Vec3::ONE * 0.15,
                     .. Default::default()
                 },

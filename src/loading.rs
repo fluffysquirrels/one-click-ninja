@@ -70,7 +70,7 @@ pub struct TextureAssets {
     pub icon_magic_highlight: Handle<Texture>,
     #[asset(path = "sprites/david_dawn/arrow_highlight.png")]
     pub icon_arrow_highlight: Handle<Texture>,
-    #[asset(path = "sprites/pointer.png")]
+    #[asset(path = "sprites/david_dawn/pointer.png")]
     pub icon_pointer: Handle<Texture>,
 
     #[asset(path = "sprites/lpc-medieval-fantasy-character/our_work/archer/walk_down/00.png")]
