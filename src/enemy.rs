@@ -32,6 +32,7 @@ struct Sprites {
     boss_text: Handle<TextureAtlas>,
     win_text: Handle<ColorMaterial>,
     level_border: Handle<ColorMaterial>,
+    mouthers: Handle<TextureAtlas>,
 }
 
 struct AttackAnimation {
@@ -178,6 +179,12 @@ fn create_resources(
                                         2, // columns
                                         1  // rows
                                         )),
+        mouthers: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.mouthers_sheet.clone(),
+                                        Vec2::new(120., 40.),
+                                        5, // columns
+                                        1  // rows
+                                        )),
 
         magic_ball: materials.add(texture_assets.icon_magic.clone().into()),
         health_background: materials.add(texture_assets.health_enemy.clone().into()),
@@ -209,6 +216,7 @@ fn spawn_current_enemy(
     fonts: Res<Fonts>,
     level: ResMut<Level>,
     sprites: Res<Sprites>,
+    time: Res<Time>,
 ) {
     // Despawn any entities from previous runs
     for entity in despawn_query.iter() {
@@ -280,7 +288,7 @@ fn spawn_current_enemy(
                                            Character::Boss => 150.,
                                            _ => 173.
                                        },
-                                       2.),
+                                       3.),
                 scale: Vec3::ONE * (match character {
                     Character::Boss => 3.,
                     _ => 2.,
@@ -344,6 +352,25 @@ fn spawn_current_enemy(
         },
         .. Default::default()
     }).insert(EnemyEntity);
+
+    // Mouthers
+    commands.spawn()
+        .insert(EnemyEntity)
+        .insert_bundle(SpriteSheetBundle {
+            texture_atlas: sprites.mouthers.clone(),
+            transform: Transform {
+                translation: Vec3::new(163., 158., 2.),
+                scale: Vec3::ONE * 2.,
+                .. Default::default()
+            },
+            .. Default::default()
+        })
+        .insert(AnimateSpriteSheet {
+            frame_duration: Duration::from_millis(500),
+            next_frame_time: time.time_since_startup() + Duration::from_millis(500),
+            max_index: 3,
+            loop_: true,
+        });
 }
 
 fn enemy_attack(
@@ -570,7 +597,7 @@ fn respawn_timer(
                 },
                 Level::Boss => unreachable!(),
             };
-            spawn_current_enemy(commands, despawn_query, fonts, level, sprites);
+            spawn_current_enemy(commands, despawn_query, fonts, level, sprites, time);
         }
     }
 }
