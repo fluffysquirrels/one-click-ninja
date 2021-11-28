@@ -1,5 +1,6 @@
 # Asset sources
 
+* `assets/fonts/fiendish.ttf` from <http://www.sinisterfonts.com>
 * `assets/fonts/FiraSans-Bold.ttf` from <https://fonts.google.com/specimen/Fira+Sans>
 * `assets/sfx/5_Action_Chiptunes_By_Juhani_Junkala` from <https://opengameart.org/content/5-chiptunes-action>
 * `assets/sfx/aargh` from <https://opengameart.org/content/aargh-male-screams>
