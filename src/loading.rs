@@ -128,6 +128,8 @@ pub struct TextureAssets {
 
     #[asset(path = "sprites/david_dawn/blood.png")]
     pub blood_splatter: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/shield_flash_sheet.png")]
+    pub shield_flash_sheet: Handle<Texture>,
 
     #[asset(path = "sprites/david_dawn/background.png")]
     pub background: Handle<Texture>,

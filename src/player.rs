@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_kira_audio::Audio;
 use crate::{
     components::{AnimateSpriteSheet, DespawnAfter, Health, Player},
-    events::{DamageApplied, PlayerAttackAction},
+    events::{DamageApplied, PlayerAttackAction, PlayerDefendAction},
     loading::Sounds,
     types::{DamageType, Hp},
     game_state::GameState,
@@ -27,6 +27,7 @@ struct Sprites {
     blood_splatter: Handle<TextureAtlas>,
     health_background: Handle<ColorMaterial>,
     health_bar: Handle<ColorMaterial>,
+    shield_flash: Handle<TextureAtlas>,
 }
 
 enum AnimationState {
@@ -55,7 +56,8 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(update_player_display.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
-                    .with_system(player_attack.system())
+                    .with_system(player_attack_visuals.system())
+                    .with_system(player_defend_visuals.system())
                     .with_system(player_damage_applied.system())
                     .with_system(die.system()))
             ;
@@ -83,6 +85,12 @@ fn create_resources(
                                     )),
         health_background: materials.add(texture_assets.health_player.clone().into()),
         health_bar: materials.add(Color::rgb(64./255., 1., 0.).into()),
+        shield_flash: texture_atlases.add(
+            TextureAtlas::from_grid(texture_assets.shield_flash_sheet.clone(),
+                                    Vec2::new(280., 420.),
+                                    4, // columns
+                                    1  // rows
+                                    ))
     });
 }
 
@@ -151,7 +159,7 @@ fn player_start_health() -> Health {
     }
 }
 
-fn player_attack(
+fn player_attack_visuals(
     mut commands: Commands,
     mut attack_reader: EventReader<PlayerAttackAction>,
     mut anim_query: Query<&mut AnimationState, With<Player>>,
@@ -181,6 +189,37 @@ fn player_attack(
                     });
             }
         }
+    }
+}
+
+fn player_defend_visuals(
+    mut commands: Commands,
+    mut defend_reader: EventReader<PlayerDefendAction>,
+    sprites: Res<Sprites>,
+    atlases: Res<Assets<TextureAtlas>>,
+    time: Res<Time>,
+) {
+    if let Some(_defend) = defend_reader.iter().next() {
+        commands.spawn_bundle(SpriteSheetBundle {
+            sprite: TextureAtlasSprite {
+                index: 0,
+                .. Default::default()
+            },
+            texture_atlas: sprites.shield_flash.clone(),
+            transform: Transform {
+                translation: Vec3::new(163., 30., 2.),
+                scale: Vec3::ONE * 0.2,
+                .. Default::default()
+            },
+            .. Default::default()
+        }).insert(DespawnAfter {
+            after: time.time_since_startup() + Duration::from_millis(450),
+        }).insert(AnimateSpriteSheet {
+            frame_duration: Duration::from_millis(150),
+            next_frame_time: time.time_since_startup() + Duration::from_millis(150),
+            max_index: atlases.get(sprites.shield_flash.clone())
+                              .map(|a| a.len() - 1).unwrap_or(0) as u32,
+        });
     }
 }
 
