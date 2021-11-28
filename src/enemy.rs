@@ -60,8 +60,8 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(insert_level.system()))
             .add_system_set(
                 SystemSet::on_enter(GameState::Playing)
-                    .with_system(set_level.system())
-                    .with_system(spawn_current_enemy.system()))
+                    .with_system(set_level.system().label("set_level"))
+                    .with_system(spawn_current_enemy.system().after("set_level")))
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                     .with_system(enemy_attack.system())
