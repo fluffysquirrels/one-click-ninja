@@ -3,10 +3,10 @@ use bevy_kira_audio::Audio;
 use crate::{
     components::{AttackType, Character, DespawnAfter, Enemy, Health},
     events::{Damage, DamageApplied, EnemyAttackTime, PlayerAttackAction},
-    loading::Sounds,
-    types::DamageType,
     game_state::GameState,
-    loading,
+    loading::{self, Sounds},
+    resources::Level,
+    types::DamageType,
 };
 use rand::Rng;
 use std::time::Duration;
@@ -44,15 +44,18 @@ struct RespawnTimer {
 }
 
 pub const ATTACK_DURATION: Duration = Duration::from_millis(300);
+pub const NUM_MOB_LEVELS: u8 = 5;
 
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         app
             .add_system_set(
                 SystemSet::on_enter(GameState::CreateResources)
-                    .with_system(create_resources.system()))
+                    .with_system(create_resources.system())
+                    .with_system(insert_level.system()))
             .add_system_set(
                 SystemSet::on_enter(GameState::Playing)
+                    .with_system(set_level.system())
                     .with_system(spawn_current_enemy.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
@@ -169,12 +172,29 @@ fn create_resources(
     });
 }
 
+// It's weird needing two systems to insert the resource, but I get resource not found
+// if I just insert on entering GameState::Playing
+fn insert_level(
+    mut commands: Commands,
+) {
+    commands.insert_resource(
+        Level::Mob(1)
+    );
+}
+
+fn set_level(
+    mut level: ResMut<Level>,
+) {
+    *level = Level::Mob(1);
+}
+
 fn spawn_current_enemy(
     mut commands: Commands,
-    sprites: Res<Sprites>,
     enemy_query: Query<Entity, With<Enemy>>,
     enemy_hp_bg_query: Query<Entity, With<HpBackground>>,
     enemy_hp_bar_query: Query<Entity, With<HpBar>>,
+    level: ResMut<Level>,
+    sprites: Res<Sprites>,
 ) {
     // Despawn any entities from previous runs
     for entity in enemy_query.single() {
@@ -189,14 +209,15 @@ fn spawn_current_enemy(
         commands.entity(entity).despawn();
     }
 
-    // WIP: boss only
-    let character = match rand::thread_rng().gen_range(0..=2) {
-        0 => Character::Archer,
-        1 => Character::Knight,
-        2 => Character::Mage,
-        _ => unreachable!(),
+    let character = match *level {
+        Level::Mob(_mob_level) => match rand::thread_rng().gen_range(0..=2) {
+            0 => Character::Archer,
+            1 => Character::Knight,
+            2 => Character::Mage,
+            _ => unreachable!(),
+        },
+        Level::Boss => Character::Boss,
     };
-    //let character = Character::Boss;
     let character_sprites: CharacterSprites = match character {
         Character::Archer => sprites.archer.clone(),
         Character::Knight => sprites.knight.clone(),
@@ -247,7 +268,12 @@ fn spawn_current_enemy(
             },
             texture_atlas: character_sprites.idle.clone(),
             transform: Transform {
-                translation: Vec3::new(163., 173., 2.),
+                translation: Vec3::new(163.,
+                                       match character {
+                                           Character::Boss => 150.,
+                                           _ => 173.
+                                       },
+                                       2.),
                 scale: Vec3::ONE * (match character {
                     Character::Boss => 3.,
                     _ => 2.,
@@ -273,17 +299,6 @@ fn spawn_current_enemy(
         transform: health_bar_transform(&health),
         .. Default::default()
     }).insert(HpBar);
-}
-
-fn respawn_current_enemy(
-    commands: Commands,
-    sprites: Res<Sprites>,
-    enemy_query: Query<Entity, With<Enemy>>,
-    enemy_hp_bg_query: Query<Entity, With<HpBackground>>,
-    enemy_hp_bar_query: Query<Entity, With<HpBar>>,
-) {
-    spawn_current_enemy(commands, sprites, enemy_query, enemy_hp_bg_query,
-                        enemy_hp_bar_query);
 }
 
 fn enemy_attack(
@@ -385,17 +400,31 @@ fn damage_applied(
 
 fn respawn_timer(
     commands: Commands,
-    sprites: Res<Sprites>,
-    time: Res<Time>,
     respawn_query: Query<&RespawnTimer, With<Enemy>>,
     enemy_query: Query<Entity, With<Enemy>>,
     enemy_hp_bg_query: Query<Entity, With<HpBackground>>,
     enemy_hp_bar_query: Query<Entity, With<HpBar>>,
+    mut level: ResMut<Level>,
+    sprites: Res<Sprites>,
+    mut state: ResMut<State<GameState>>,
+    time: Res<Time>,
 ) {
     if let Ok(timer) = respawn_query.single() {
         if time.time_since_startup() > timer.at {
-            respawn_current_enemy(commands, sprites, enemy_query, enemy_hp_bg_query,
-                                  enemy_hp_bar_query);
+            if *level == Level::Boss {
+                state.set(GameState::Menu).unwrap();
+                return;
+            }
+            *level = match *level {
+                Level::Mob(n) if n == NUM_MOB_LEVELS => Level::Boss,
+                Level::Mob(n) => {
+                    assert!(n < u8::MAX);
+                    Level::Mob(n + 1)
+                },
+                Level::Boss => unreachable!(),
+            };
+            spawn_current_enemy(commands, enemy_query, enemy_hp_bg_query,
+                                enemy_hp_bar_query, level, sprites);
         }
     }
 }
