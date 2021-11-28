@@ -29,7 +29,7 @@ struct Sprites {
     ray: Handle<TextureAtlas>,
     health_background: Handle<ColorMaterial>,
     health_bar: Handle<ColorMaterial>,
-    boss_text: Handle<ColorMaterial>,
+    boss_text: Handle<TextureAtlas>,
     win_text: Handle<ColorMaterial>,
     level_border: Handle<ColorMaterial>,
 }
@@ -172,10 +172,16 @@ fn create_resources(
                                         6, // columns
                                         1  // rows
                                         )),
+        boss_text: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.boss_text_sheet.clone(),
+                                        Vec2::new(688., 253.),
+                                        2, // columns
+                                        1  // rows
+                                        )),
+
         magic_ball: materials.add(texture_assets.icon_magic.clone().into()),
         health_background: materials.add(texture_assets.health_enemy.clone().into()),
         health_bar: materials.add(Color::rgb(1.0, 0., 242./255.).into()),
-        boss_text: materials.add(texture_assets.boss_text.clone().into()),
         win_text: materials.add(texture_assets.win_text.clone().into()),
         level_border: materials.add(texture_assets.level_border.clone().into()),
     });
@@ -365,6 +371,7 @@ fn enemy_attack(
                     next_frame_time: time.time_since_startup() + Duration::from_millis(200),
                     max_index: atlases.get(atlas.clone())
                                       .map(|a| a.len() - 1).unwrap_or(0) as u32,
+                    loop_: false,
                 };
                 match attack_type.damage_type {
                     DamageType::Magic => {
@@ -406,6 +413,7 @@ fn enemy_attack(
                                     + Duration::from_millis(50),
                                 max_index: atlases.get(sprites.ray.clone())
                                     .map(|a| a.len() - 1).unwrap_or(0) as u32,
+                                loop_: false,
                             });
                     },
                     _ => {},
@@ -461,6 +469,7 @@ fn update_enemy_hp(
                     next_frame_time: time.time_since_startup() + Duration::from_millis(200),
                     max_index: atlases.get(atlas.clone())
                         .map(|a| a.len() - 1).unwrap_or(0) as u32,
+                    loop_: false,
                 };
                 let boss_next = *level == Level::Mob(NUM_MOB_LEVELS);
                 let boss_done = *level == Level::Boss;
@@ -479,8 +488,12 @@ fn update_enemy_hp(
                     });
                 } else if boss_next {
                     audio.play(sounds.boss_intro.clone());
-                    commands.spawn_bundle(SpriteBundle {
-                        material: sprites.boss_text.clone(),
+                    commands.spawn_bundle(SpriteSheetBundle {
+                        sprite: TextureAtlasSprite {
+                            index: 0,
+                            .. Default::default()
+                        },
+                        texture_atlas: sprites.boss_text.clone(),
                         transform: Transform {
                             translation: Vec3::new(0., 0., 5.),
                             scale: Vec3::ONE,
@@ -489,6 +502,11 @@ fn update_enemy_hp(
                         .. Default::default()
                     }).insert(DespawnAfter {
                         after: time.time_since_startup() + Duration::from_secs(4),
+                    }).insert(AnimateSpriteSheet {
+                        frame_duration: Duration::from_millis(500),
+                        next_frame_time: time.time_since_startup() + Duration::from_millis(500),
+                        max_index: 1,
+                        loop_: true,
                     });
                 } else {
                     // Just a regular level

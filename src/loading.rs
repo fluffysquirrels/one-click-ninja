@@ -149,8 +149,8 @@ pub struct TextureAssets {
     #[asset(path = "sprites/david_dawn/click_here.png")]
     pub menu_click_here: Handle<Texture>,
 
-    #[asset(path = "sprites/david_dawn/boss_text.png")]
-    pub boss_text: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/boss_text_sheet.png")]
+    pub boss_text_sheet: Handle<Texture>,
 
     #[asset(path = "sprites/david_dawn/you_survived.png")]
     pub win_text: Handle<Texture>,

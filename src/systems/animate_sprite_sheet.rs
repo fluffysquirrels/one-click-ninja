@@ -22,7 +22,14 @@ fn animate(
     for (mut sprite, mut anim) in query.iter_mut() {
         let now = time.time_since_startup();
         if now >= anim.next_frame_time {
-            sprite.index = (sprite.index + 1).min(anim.max_index);
+            let next_index = sprite.index + 1;
+            sprite.index =
+                if anim.loop_ {
+                    next_index % (anim.max_index + 1)
+                } else {
+                    // No loop
+                    next_index.min(anim.max_index)
+                };
             anim.next_frame_time = now + anim.frame_duration;
         }
     }

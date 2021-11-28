@@ -219,6 +219,7 @@ fn player_defend_visuals(
             next_frame_time: time.time_since_startup() + Duration::from_millis(150),
             max_index: atlases.get(sprites.shield_flash.clone())
                               .map(|a| a.len() - 1).unwrap_or(0) as u32,
+            loop_: false,
         });
     }
 }
@@ -321,6 +322,7 @@ fn player_damage_applied(
                 frame_duration: Duration::from_millis(100),
                 next_frame_time: time.time_since_startup() + Duration::from_millis(100),
                 max_index: 5,
+                loop_: false,
             });
         }
     }

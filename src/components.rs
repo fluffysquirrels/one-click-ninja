@@ -47,6 +47,7 @@ pub struct AnimateSpriteSheet {
     pub frame_duration: Duration,
     pub next_frame_time: Duration,
     pub max_index: u32,
+    pub loop_: bool,
 }
 
 impl AnimateSpriteSheet {
@@ -55,6 +56,7 @@ impl AnimateSpriteSheet {
             frame_duration: Duration::from_secs(u32::MAX as u64),
             next_frame_time: Duration::from_secs(u32::MAX as u64),
             max_index: 0,
+            loop_: false,
         }
     }
 }
