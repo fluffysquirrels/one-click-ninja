@@ -82,7 +82,7 @@ fn create_resources(
                                     1  // rows
                                     )),
         health_background: materials.add(texture_assets.health_player.clone().into()),
-        health_bar: materials.add(Color::rgb(1., 1., 24./255.).into()),
+        health_bar: materials.add(Color::rgb(64./255., 1., 0.).into()),
     });
 }
 
