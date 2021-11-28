@@ -12,7 +12,7 @@ impl bevy::prelude::Plugin for Plugin {
     fn build(&self, app: &mut AppBuilder) {
         // AssetLoader will move to the 2nd gamestate provided here once all assets are loaded
         AssetLoader::new(GameState::Loading, GameState::CreateResources)
-            .with_collection::<FontAssets>()
+            .with_collection::<Fonts>()
             .with_collection::<Sounds>()
             .with_collection::<TextureAssets>()
             .with_collection::<CountdownTextures>()
@@ -22,9 +22,11 @@ impl bevy::prelude::Plugin for Plugin {
 
 // The following asset collections will be loaded during the State `GameState::Loading`
 #[derive(AssetCollection)]
-pub struct FontAssets {
+pub struct Fonts {
     #[asset(path = "fonts/FiraSans-Bold.ttf")]
     pub fira_sans: Handle<Font>,
+    #[asset(path = "fonts/fiendish/Fiendish.ttf")]
+    pub fiendish: Handle<Font>,
 }
 
 #[derive(AssetCollection)]

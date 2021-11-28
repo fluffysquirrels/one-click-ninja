@@ -15,7 +15,7 @@ mod types;
 use bevy::prelude::*;
 use bevy_kira_audio::AudioPlugin;
 use crate::{
-    resources::{Fonts, Icons},
+    resources::Icons,
     game_state::GameState,
 };
 
@@ -113,18 +113,12 @@ fn main() {
 
 fn create_resources(
     mut commands: Commands,
-    font_assets: Res<loading::FontAssets>,
     texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(Icons {
         attack: materials.add(texture_assets.icon_sword.clone().into()),
         defend: materials.add(texture_assets.icon_shield.clone().into()),
-    });
-
-    // TODO: Should probably just pass font_assets around.
-    commands.insert_resource(Fonts {
-        default: font_assets.fira_sans.clone(),
     });
 
     commands.insert_resource(Background {

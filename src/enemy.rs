@@ -4,7 +4,7 @@ use crate::{
     components::{AttackType, Character, DespawnAfter, Enemy, Health},
     events::{Damage, DamageApplied, EnemyAttackTime, PlayerAttackAction},
     game_state::GameState,
-    loading::{self, Sounds},
+    loading::{self, Fonts, Sounds},
     resources::Level,
     types::DamageType,
 };
@@ -37,6 +37,9 @@ struct AttackAnimation {
 
 struct HpBackground;
 struct HpBar;
+struct LevelText;
+
+struct EnemyEntity;
 
 #[derive(Debug)]
 struct RespawnTimer {
@@ -190,22 +193,13 @@ fn set_level(
 
 fn spawn_current_enemy(
     mut commands: Commands,
-    enemy_query: Query<Entity, With<Enemy>>,
-    enemy_hp_bg_query: Query<Entity, With<HpBackground>>,
-    enemy_hp_bar_query: Query<Entity, With<HpBar>>,
+    despawn_query: Query<Entity, With<EnemyEntity>>,
+    fonts: Res<Fonts>,
     level: ResMut<Level>,
     sprites: Res<Sprites>,
 ) {
     // Despawn any entities from previous runs
-    for entity in enemy_query.single() {
-        commands.entity(entity).despawn();
-    }
-
-    for entity in enemy_hp_bg_query.single() {
-        commands.entity(entity).despawn();
-    }
-
-    for entity in enemy_hp_bar_query.single() {
+    for entity in despawn_query.iter() {
         commands.entity(entity).despawn();
     }
 
@@ -249,6 +243,7 @@ fn spawn_current_enemy(
     };
     commands.spawn()
         .insert(Enemy)
+        .insert(EnemyEntity)
         .insert(character.clone())
         .insert(character_sprites.clone())
         .insert(health.clone())
@@ -291,14 +286,42 @@ fn spawn_current_enemy(
             .. Default::default()
         },
         .. Default::default()
-    }).insert(HpBackground);
+    }).insert(HpBackground)
+      .insert(EnemyEntity);
+
 
     commands.spawn_bundle(SpriteBundle {
         material: sprites.health_bar.clone(),
         sprite: Sprite::new(Vec2::new(1.0, 1.0)),
         transform: health_bar_transform(&health),
         .. Default::default()
-    }).insert(HpBar);
+    }).insert(HpBar)
+      .insert(EnemyEntity);
+
+
+    // Spawn level text
+    commands.spawn_bundle(Text2dBundle {
+        text: Text::with_section(
+            match *level {
+                Level::Mob(n) => format!("Level {} of {}", n, NUM_MOB_LEVELS + 1),
+                Level::Boss => "Boss Level!".to_owned(),
+            },
+            TextStyle {
+                font: fonts.fiendish.clone(),
+                font_size: 30.,
+                color: Color::rgb(242./255., 0., 48./255.),
+            },
+            TextAlignment {
+                vertical: VerticalAlign::Center,
+                horizontal: HorizontalAlign::Center,
+            }),
+        transform: Transform {
+            translation: Vec3::new(-300., 250., 5.),
+            .. Default::default()
+        },
+        .. Default::default()
+    }).insert(LevelText)
+      .insert(EnemyEntity);
 }
 
 fn enemy_attack(
@@ -397,13 +420,11 @@ fn damage_applied(
     }
 }
 
-
 fn respawn_timer(
     commands: Commands,
     respawn_query: Query<&RespawnTimer, With<Enemy>>,
-    enemy_query: Query<Entity, With<Enemy>>,
-    enemy_hp_bg_query: Query<Entity, With<HpBackground>>,
-    enemy_hp_bar_query: Query<Entity, With<HpBar>>,
+    despawn_query: Query<Entity, With<EnemyEntity>>,
+    fonts: Res<Fonts>,
     mut level: ResMut<Level>,
     sprites: Res<Sprites>,
     mut state: ResMut<State<GameState>>,
@@ -423,8 +444,7 @@ fn respawn_timer(
                 },
                 Level::Boss => unreachable!(),
             };
-            spawn_current_enemy(commands, enemy_query, enemy_hp_bg_query,
-                                enemy_hp_bar_query, level, sprites);
+            spawn_current_enemy(commands, despawn_query, fonts, level, sprites);
         }
     }
 }

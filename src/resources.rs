@@ -7,10 +7,6 @@ pub struct Icons {
     pub defend: Handle<ColorMaterial>,
 }
 
-pub struct Fonts {
-    pub default: Handle<Font>,
-}
-
 #[derive(Eq, PartialEq)]
 pub enum Countdown {
     Disabled,
