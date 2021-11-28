@@ -29,7 +29,7 @@ struct ButtonPressed;
 
 struct ActionSpinner;
 
-struct PlayerAttackedThisTurn(bool);
+struct PlayerMissedThisTurn(bool);
 
 struct Icons {
     pointer: Handle<ColorMaterial>,
@@ -94,7 +94,7 @@ fn spawn_entities(
         commands.entity(ent).despawn();
     }
 
-    commands.insert_resource(PlayerAttackedThisTurn(false));
+    commands.insert_resource(PlayerMissedThisTurn(false));
 
     commands.spawn_bundle(SpriteBundle {
         material: icons.sword.clone(),
@@ -183,7 +183,7 @@ fn spin_action_pointer(
     mut pointer_pos: Query<(&mut ActionPointer, &mut Transform)>,
     mut icons_query: Query<(&ActionIcon, &mut Handle<ColorMaterial>)>,
     countdown: Res<Countdown>,
-    mut attacked_this_turn: ResMut<PlayerAttackedThisTurn>,
+    mut missed_this_turn: ResMut<PlayerMissedThisTurn>,
 ) {
     for (mut ap, mut transform) in pointer_pos.single_mut() {
         let mut icons: Vec<(&ActionIcon, Mut<Handle<ColorMaterial>>)> =
@@ -205,7 +205,7 @@ fn spin_action_pointer(
         }
 
         if is_angle_hit(old_angle, new_angle, DEFEND_ANGLE) {
-            attacked_this_turn.0 = false;
+            missed_this_turn.0 = false;
         }
 
         if *countdown == Countdown::Disabled &&
@@ -254,7 +254,7 @@ fn choose_action(
     mut defend_writer: EventWriter<PlayerDefendAction>,
     pointer: Query<&ActionPointer>,
     player: Query<&Health, With<Player>>,
-    mut attacked_this_turn: ResMut<PlayerAttackedThisTurn>,
+    mut missed_this_turn: ResMut<PlayerMissedThisTurn>,
 ) {
     if button_reader.iter().next().is_some() {
         // Button was pressed
@@ -266,8 +266,7 @@ fn choose_action(
                 if deg >= 160. && deg <= 200. {
                     debug!("choose_action: emit PlayerDefendAction");
                     defend_writer.send(PlayerDefendAction);
-                } else if !attacked_this_turn.0 {
-                    attacked_this_turn.0 = true;
+                } else if !missed_this_turn.0 {
                     if deg >= 0. && deg <= 20. || deg >= 340. {
                         let attack = PlayerAttackAction {
                             damage_type: DamageType::Sword,
@@ -286,6 +285,9 @@ fn choose_action(
                         };
                         debug!("choose_action: emit {:?}", attack);
                         attack_writer.send(attack);
+                    } else {
+                        // Missed all actions.
+                        missed_this_turn.0 = true;
                     }
                 }
             },
