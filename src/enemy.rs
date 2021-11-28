@@ -30,6 +30,7 @@ struct Sprites {
     health_background: Handle<ColorMaterial>,
     health_bar: Handle<ColorMaterial>,
     boss_text: Handle<ColorMaterial>,
+    win_text: Handle<ColorMaterial>,
 }
 
 struct AttackAnimation {
@@ -174,6 +175,7 @@ fn create_resources(
         health_background: materials.add(texture_assets.health_enemy.clone().into()),
         health_bar: materials.add(Color::rgb(1.0, 0., 242./255.).into()),
         boss_text: materials.add(texture_assets.boss_text.clone().into()),
+        win_text: materials.add(texture_assets.win_text.clone().into()),
     });
 }
 
@@ -398,16 +400,20 @@ fn update_enemy_hp(
             sprite.index = 0;
             if !respawn_timer_query.single().is_ok() {
                 let boss_next = *level == Level::Mob(NUM_MOB_LEVELS);
-                commands.entity(enemy_entity)
-                    .insert(RespawnTimer {
-                        at: time.time_since_startup() +
-                            if boss_next {
-                                Duration::from_secs(5)
-                            } else {
-                                Duration::from_secs(2)
-                            }
+                let boss_done = *level == Level::Boss;
+                if boss_done {
+                    commands.spawn_bundle(SpriteBundle {
+                        material: sprites.win_text.clone(),
+                        transform: Transform {
+                            translation: Vec3::new(0., 0., 5.),
+                            scale: Vec3::ONE,
+                            .. Default::default()
+                        },
+                        .. Default::default()
+                    }).insert(DespawnAfter {
+                        after: time.time_since_startup() + Duration::from_secs(5),
                     });
-                if boss_next {
+                } else if boss_next {
                     audio.play(sounds.boss_intro.clone());
                     commands.spawn_bundle(SpriteBundle {
                         material: sprites.boss_text.clone(),
@@ -421,8 +427,19 @@ fn update_enemy_hp(
                         after: time.time_since_startup() + Duration::from_secs(4),
                     });
                 } else {
+                    // Just a regular level
                     audio.play(sounds.zombie_death.clone());
                 }
+
+                commands.entity(enemy_entity)
+                    .insert(RespawnTimer {
+                        at: time.time_since_startup() +
+                            if boss_next || boss_done {
+                                Duration::from_secs(5)
+                            } else {
+                                Duration::from_secs(2)
+                            }
+                    });
             }
         }
          for mut hp_transform in hp_bar.single_mut() {

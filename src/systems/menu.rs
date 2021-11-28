@@ -47,10 +47,15 @@ fn create_resources(
 
 fn on_enter(
     mut commands: Commands,
+    despawn_query: Query<Entity>,
     audio: Res<Audio>,
     sounds: Res<Sounds>,
     sprites: Res<Sprites>,
 ) {
+    for entity in despawn_query.iter() {
+        commands.entity(entity).despawn();
+    }
+
     commands
         .spawn()
         .insert(Menu)
