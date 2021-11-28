@@ -533,10 +533,11 @@ fn enemy_was_attacked(
 fn health_bar_transform(health: &Health) -> Transform {
     assert!(health.max >= 1);
     let portion = (health.current as f32) / (health.max as f32);
-    let width_pixels = portion * 162.;
-
+    const WIDTH: f32 = 162.;
+    let width_pixels = portion * WIDTH;
+    let left_edge = 163. - (WIDTH / 2.);
     Transform {
-        translation: Vec3::new(163. - (162. / 2.) + width_pixels / 2., 243., 4.),
+        translation: Vec3::new(left_edge + width_pixels / 2., 243., 4.),
         scale: Vec3::new(width_pixels, 16., 1.),
         .. Default::default()
     }
