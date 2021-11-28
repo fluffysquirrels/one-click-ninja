@@ -464,7 +464,7 @@ fn update_enemy_hp(
                         },
                         .. Default::default()
                     }).insert(DespawnAfter {
-                        after: time.time_since_startup() + Duration::from_secs(5),
+                        after: time.time_since_startup() + Duration::from_secs(10),
                     });
                 } else if boss_next {
                     audio.play(sounds.boss_intro.clone());
@@ -487,8 +487,10 @@ fn update_enemy_hp(
                 commands.entity(enemy_entity)
                     .insert(RespawnTimer {
                         at: time.time_since_startup() +
-                            if boss_next || boss_done {
+                            if boss_next {
                                 Duration::from_secs(5)
+                            } else if boss_done {
+                                Duration::from_secs(10)
                             } else {
                                 Duration::from_secs(2)
                             }
