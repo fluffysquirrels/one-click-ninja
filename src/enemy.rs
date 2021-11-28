@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_kira_audio::Audio;
 use crate::{
-    components::{AttackType, Character, DespawnAfter, Enemy, Health},
+    components::{AnimateSpriteSheet, AttackType, Character, DespawnAfter, Enemy, Health},
     events::{Damage, DamageApplied, EnemyAttackTime, PlayerAttackAction},
     game_state::GameState,
     loading::{self, Fonts, Sounds},
@@ -280,7 +280,8 @@ fn spawn_current_enemy(
                 .. Default::default()
             },
             .. Default::default()
-        });
+        })
+        .insert(AnimateSpriteSheet::never());
 
     // Spawn HP bar
     commands.spawn_bundle(SpriteBundle {
@@ -331,13 +332,16 @@ fn spawn_current_enemy(
 fn enemy_attack(
     mut commands: Commands,
     mut enemy: Query<(Entity, &Health, &mut Handle<TextureAtlas>, &mut TextureAtlasSprite,
-                      &CharacterSprites, &AttackType),
+                      &mut AnimateSpriteSheet, &CharacterSprites, &AttackType),
                      With<Enemy>>,
     mut attack_time_reader: EventReader<EnemyAttackTime>,
     sprites: Res<Sprites>,
+    atlases: Res<Assets<TextureAtlas>>,
     time: Res<Time>,
 ) {
-    for (entity, health, mut atlas, mut sprite, char_sprites, attack_type) in enemy.single_mut() {
+    for (entity, health, mut atlas, mut sprite, mut anim, char_sprites, attack_type) in
+        enemy.single_mut()
+    {
         if health.current > 0 {
             if attack_time_reader.iter().next().is_some() {
                 commands.entity(entity).insert(AttackAnimation {
@@ -345,6 +349,12 @@ fn enemy_attack(
                 });
                 *atlas = char_sprites.attack.clone();
                 sprite.index = 0;
+                *anim = AnimateSpriteSheet {
+                    frame_duration: Duration::from_millis(200),
+                    next_frame_time: time.time_since_startup() + Duration::from_millis(200),
+                    max_index: atlases.get(atlas.clone())
+                                      .map(|a| a.len() - 1).unwrap_or(0) as u32,
+                };
                 if attack_type.damage_type == DamageType::Magic {
                     commands.spawn()
                         .insert(DespawnAfter {
@@ -369,13 +379,16 @@ fn attack_animation(
     mut commands: Commands,
     time: Res<Time>,
     mut enemy: Query<(Entity, &mut Handle<TextureAtlas>, &mut TextureAtlasSprite,
-                      &AttackAnimation, &CharacterSprites),
+                      &mut AnimateSpriteSheet, &AttackAnimation, &CharacterSprites),
                      With<Enemy>>,
 ) {
-    for (entity, mut atlas, mut sprite, anim, sprites) in enemy.single_mut() {
-        if time.time_since_startup() > anim.until {
-            *atlas = sprites.idle.clone();
+    for (entity, mut atlas, mut sprite, mut anim, attack_animation, char_sprites)
+        in enemy.single_mut()
+    {
+        if time.time_since_startup() > attack_animation.until {
+            *atlas = char_sprites.idle.clone();
             sprite.index = 0;
+            *anim = AnimateSpriteSheet::never();
             commands.entity(entity).remove::<AttackAnimation>();
         }
     }
@@ -385,20 +398,29 @@ fn update_enemy_hp(
     mut commands: Commands,
     mut hp_bar: Query<&mut Transform, With<HpBar>>,
     mut enemy: Query<(Entity, &Health, &mut Handle<TextureAtlas>, &mut TextureAtlasSprite,
-                      &CharacterSprites),
+                      &mut AnimateSpriteSheet, &CharacterSprites),
                      With<Enemy>>,
     respawn_timer_query: Query<&RespawnTimer, With<Enemy>>,
     audio: Res<Audio>,
     level: Res<Level>,
     sounds: Res<Sounds>,
     sprites: Res<Sprites>,
+    atlases: Res<Assets<TextureAtlas>>,
     time: Res<Time>,
 ) {
-    for (enemy_entity, health, mut atlas, mut sprite, character_sprites) in enemy.single_mut() {
+    for (enemy_entity, health, mut atlas, mut sprite, mut anim, character_sprites)
+        in enemy.single_mut()
         if health.current == 0 {
             *atlas = character_sprites.death.clone();
-            sprite.index = 0;
             if !respawn_timer_query.single().is_ok() {
+                // Just died.
+                sprite.index = 0;
+                *anim = AnimateSpriteSheet {
+                    frame_duration: Duration::from_millis(200),
+                    next_frame_time: time.time_since_startup() + Duration::from_millis(200),
+                    max_index: atlases.get(atlas.clone())
+                        .map(|a| a.len() - 1).unwrap_or(0) as u32,
+                };
                 let boss_next = *level == Level::Mob(NUM_MOB_LEVELS);
                 let boss_done = *level == Level::Boss;
                 if boss_done {
