@@ -402,6 +402,7 @@ fn update_enemy_hp(
                 let boss_next = *level == Level::Mob(NUM_MOB_LEVELS);
                 let boss_done = *level == Level::Boss;
                 if boss_done {
+                    audio.play(sounds.zombie_death.clone());
                     commands.spawn_bundle(SpriteBundle {
                         material: sprites.win_text.clone(),
                         transform: Transform {
