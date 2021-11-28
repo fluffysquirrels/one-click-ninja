@@ -29,6 +29,7 @@ struct Sprites {
     ray: Handle<TextureAtlas>,
     health_background: Handle<ColorMaterial>,
     health_bar: Handle<ColorMaterial>,
+    boss_text: Handle<ColorMaterial>,
 }
 
 struct AttackAnimation {
@@ -172,6 +173,7 @@ fn create_resources(
         magic_ball: materials.add(texture_assets.icon_magic.clone().into()),
         health_background: materials.add(texture_assets.health_enemy.clone().into()),
         health_bar: materials.add(Color::rgb(1.0, 0., 242./255.).into()),
+        boss_text: materials.add(texture_assets.boss_text.clone().into()),
     });
 }
 
@@ -385,19 +387,42 @@ fn update_enemy_hp(
                      With<Enemy>>,
     respawn_timer_query: Query<&RespawnTimer, With<Enemy>>,
     audio: Res<Audio>,
+    level: Res<Level>,
     sounds: Res<Sounds>,
+    sprites: Res<Sprites>,
     time: Res<Time>,
 ) {
-    for (enemy_entity, health, mut atlas, mut sprite, sprites) in enemy.single_mut() {
+    for (enemy_entity, health, mut atlas, mut sprite, character_sprites) in enemy.single_mut() {
         if health.current == 0 {
-            *atlas = sprites.death.clone();
+            *atlas = character_sprites.death.clone();
             sprite.index = 0;
             if !respawn_timer_query.single().is_ok() {
+                let boss_next = *level == Level::Mob(NUM_MOB_LEVELS);
                 commands.entity(enemy_entity)
                     .insert(RespawnTimer {
-                        at: time.time_since_startup() + Duration::from_secs(2),
+                        at: time.time_since_startup() +
+                            if boss_next {
+                                Duration::from_secs(5)
+                            } else {
+                                Duration::from_secs(2)
+                            }
                     });
-                audio.play(sounds.zombie_death.clone());
+                if boss_next {
+                    audio.play(sounds.boss_intro.clone());
+                    commands.spawn_bundle(SpriteBundle {
+                        material: sprites.boss_text.clone(),
+                        transform: Transform {
+                            translation: Vec3::new(0., 0., 5.),
+                            scale: Vec3::ONE,
+                            .. Default::default()
+                        },
+                        .. Default::default()
+                    }).insert(DespawnAfter {
+                        after: time.time_since_startup() + Duration::from_secs(4),
+                    });
+                } else {
+                    audio.play(sounds.zombie_death.clone());
+                }
             }
         }
          for mut hp_transform in hp_bar.single_mut() {

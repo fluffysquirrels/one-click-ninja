@@ -45,6 +45,8 @@ pub struct Sounds {
     pub game_over_loop: Handle<AudioSource>,
     #[asset(path = "sfx/main_menu_loop.ogg")]
     pub main_menu_loop: Handle<AudioSource>,
+    #[asset(path = "sfx/boss.ogg")]
+    pub boss_intro: Handle<AudioSource>,
     #[asset(path = "sfx/grunt_loud.ogg")]
     pub grunt: Handle<AudioSource>,
     #[asset(path = "sfx/hits/hit08.ogg")]
@@ -144,6 +146,9 @@ pub struct TextureAssets {
     pub menu_text: Handle<Texture>,
     #[asset(path = "sprites/david_dawn/click_here.png")]
     pub menu_click_here: Handle<Texture>,
+
+    #[asset(path = "sprites/david_dawn/boss_text.png")]
+    pub boss_text: Handle<Texture>,
 
     #[asset(path = "sprites/david_dawn/health_player.png")]
     pub health_player: Handle<Texture>,
