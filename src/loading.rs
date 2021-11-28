@@ -159,6 +159,9 @@ pub struct TextureAssets {
     pub health_player: Handle<Texture>,
     #[asset(path = "sprites/david_dawn/health_enemy.png")]
     pub health_enemy: Handle<Texture>,
+
+    #[asset(path = "sprites/david_dawn/level_border.png")]
+    pub level_border: Handle<Texture>,
 }
 
 #[derive(AssetCollection)]

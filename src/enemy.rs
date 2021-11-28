@@ -31,6 +31,7 @@ struct Sprites {
     health_bar: Handle<ColorMaterial>,
     boss_text: Handle<ColorMaterial>,
     win_text: Handle<ColorMaterial>,
+    level_border: Handle<ColorMaterial>,
 }
 
 struct AttackAnimation {
@@ -176,6 +177,7 @@ fn create_resources(
         health_bar: materials.add(Color::rgb(1.0, 0., 242./255.).into()),
         boss_text: materials.add(texture_assets.boss_text.clone().into()),
         win_text: materials.add(texture_assets.win_text.clone().into()),
+        level_border: materials.add(texture_assets.level_border.clone().into()),
     });
 }
 
@@ -327,6 +329,15 @@ fn spawn_current_enemy(
         .. Default::default()
     }).insert(LevelText)
       .insert(EnemyEntity);
+    commands.spawn_bundle(SpriteBundle {
+        material: sprites.level_border.clone(),
+        transform: Transform {
+            translation: Vec3::new(-300., 250., 4.),
+            scale: Vec3::ONE * 2.,
+            .. Default::default()
+        },
+        .. Default::default()
+    }).insert(EnemyEntity);
 }
 
 fn enemy_attack(
