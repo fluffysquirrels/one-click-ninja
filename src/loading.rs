@@ -45,7 +45,7 @@ pub struct Sounds {
     pub game_over_loop: Handle<AudioSource>,
     #[asset(path = "sfx/main_menu_loop.ogg")]
     pub main_menu_loop: Handle<AudioSource>,
-    #[asset(path = "sfx/boss.ogg")]
+    #[asset(path = "sfx/boss_growl.ogg")]
     pub boss_intro: Handle<AudioSource>,
     #[asset(path = "sfx/grunt_loud.ogg")]
     pub grunt: Handle<AudioSource>,
