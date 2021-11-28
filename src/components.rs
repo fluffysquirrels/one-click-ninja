@@ -28,6 +28,8 @@ pub enum Character {
     Knight,
     Mage,
 
+    Boss,
+
     #[allow(dead_code)]
     Player,
 }

@@ -5,4 +5,5 @@ pub enum DamageType {
     Arrow,
     Magic,
     Sword,
+    Ray,
 }

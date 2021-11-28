@@ -15,16 +15,18 @@ pub struct Plugin;
 
 #[derive(Clone)]
 struct CharacterSprites {
-    idle: Handle<ColorMaterial>,
-    attack: Handle<ColorMaterial>,
-    dead: Handle<ColorMaterial>,
+    idle: Handle<TextureAtlas>,
+    attack: Handle<TextureAtlas>,
+    death: Handle<TextureAtlas>,
 }
 
 struct Sprites {
     archer: CharacterSprites,
     knight: CharacterSprites,
     mage: CharacterSprites,
+    boss: CharacterSprites,
     magic_ball: Handle<ColorMaterial>,
+    ray: Handle<TextureAtlas>,
     health_background: Handle<ColorMaterial>,
     health_bar: Handle<ColorMaterial>,
 }
@@ -68,26 +70,99 @@ fn create_resources(
     mut commands: Commands,
     texture_assets: Res<loading::TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     commands.insert_resource(Sprites {
         archer: CharacterSprites {
-            idle: materials.add(texture_assets.archer_idle.clone().into()),
-            attack: materials.add(texture_assets.archer_attack.clone().into()),
-            dead: materials.add(texture_assets.archer_dead.clone().into()),
+            idle: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.archer_idle.clone(),
+                                        Vec2::new(64., 64.),
+                                        1, // columns
+                                        1  // rows
+                                        )),
+            attack: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.archer_attack.clone(),
+                                        Vec2::new(64., 64.),
+                                        1, // columns
+                                        1  // rows
+                                        )),
+            death: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.archer_dead.clone(),
+                                        Vec2::new(64., 64.),
+                                        1, // columns
+                                        1  // rows
+                                        )),
         },
 
         knight: CharacterSprites {
-            idle: materials.add(texture_assets.knight_idle.clone().into()),
-            attack: materials.add(texture_assets.knight_attack.clone().into()),
-            dead: materials.add(texture_assets.knight_dead.clone().into()),
+            idle: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.knight_idle.clone(),
+                                        Vec2::new(64., 64.),
+                                        1, // columns
+                                        1  // rows
+                                        )),
+            attack: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.knight_attack.clone(),
+                                        Vec2::new(64., 64.),
+                                        1, // columns
+                                        1  // rows
+                                        )),
+            death: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.knight_dead.clone(),
+                                        Vec2::new(64., 64.),
+                                        1, // columns
+                                        1  // rows
+                                        )),
         },
 
         mage: CharacterSprites {
-            idle: materials.add(texture_assets.mage_idle.clone().into()),
-            attack: materials.add(texture_assets.mage_attack.clone().into()),
-            dead: materials.add(texture_assets.mage_dead.clone().into()),
+            idle: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.mage_idle.clone(),
+                                        Vec2::new(64., 64.),
+                                        1, // columns
+                                        1  // rows
+                                        )),
+            attack: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.mage_attack.clone(),
+                                        Vec2::new(64., 64.),
+                                        1, // columns
+                                        1  // rows
+                                        )),
+            death: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.mage_dead.clone(),
+                                        Vec2::new(64., 64.),
+                                        1, // columns
+                                        1  // rows
+                                        )),
         },
 
+        boss: CharacterSprites {
+            idle: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.boss_idle.clone(),
+                                        Vec2::new(65., 54.),
+                                        1, // columns
+                                        1  // rows
+                                        )),
+            attack: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.boss_attack_sheet.clone(),
+                                        Vec2::new(65., 54.),
+                                        4, // columns
+                                        1  // rows
+                                        )),
+            death: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.boss_death_sheet.clone(),
+                                        Vec2::new(65., 54.),
+                                        5, // columns
+                                        1  // rows
+                                        )),
+        },
+
+        ray: texture_atlases.add(
+                TextureAtlas::from_grid(texture_assets.boss_ray_sheet.clone(),
+                                        Vec2::new(34., 140.),
+                                        6, // columns
+                                        1  // rows
+                                        )),
         magic_ball: materials.add(texture_assets.icon_magic.clone().into()),
         health_background: materials.add(texture_assets.health_enemy.clone().into()),
         health_bar: materials.add(Color::rgb(1.0, 0., 242./255.).into()),
@@ -114,16 +189,19 @@ fn spawn_current_enemy(
         commands.entity(entity).despawn();
     }
 
+    // WIP: boss only
     let character = match rand::thread_rng().gen_range(0..=2) {
         0 => Character::Archer,
         1 => Character::Knight,
         2 => Character::Mage,
         _ => unreachable!(),
     };
-    let character_sprites = match character {
+    //let character = Character::Boss;
+    let character_sprites: CharacterSprites = match character {
         Character::Archer => sprites.archer.clone(),
         Character::Knight => sprites.knight.clone(),
-        Character::Mage => sprites.mage.clone(),
+        Character::Mage =>   sprites.mage.clone(),
+        Character::Boss =>   sprites.boss.clone(),
         Character::Player => unreachable!(),
     };
 
@@ -131,6 +209,7 @@ fn spawn_current_enemy(
         Character::Archer => 3,
         Character::Knight => 4,
         Character::Mage => 2,
+        Character::Boss => 10,
         Character::Player => unreachable!(),
     };
 
@@ -142,30 +221,40 @@ fn spawn_current_enemy(
             Character::Archer => vec![DamageType::Arrow, DamageType::Magic],
             Character::Knight => vec![DamageType::Magic],
             Character::Mage   => vec![DamageType::Arrow, DamageType::Sword],
+            Character::Boss   => vec![DamageType::Magic, DamageType::Sword],
             Character::Player => unreachable!(),
         }
         ,
     };
-    commands.spawn_bundle(SpriteBundle {
-        material: character_sprites.idle.clone(),
-        transform: Transform {
-            translation: Vec3::new(163., 173., 2.),
-            scale: Vec3::ONE * 2.0,
-            .. Default::default()
-        },
-        .. Default::default()
-    })
+    commands.spawn()
         .insert(Enemy)
         .insert(character.clone())
-        .insert(character_sprites)
+        .insert(character_sprites.clone())
         .insert(health.clone())
         .insert(AttackType { damage_type:
             match character {
                 Character::Archer => DamageType::Arrow,
                 Character::Knight => DamageType::Sword,
                 Character::Mage   => DamageType::Magic,
+                Character::Boss   => DamageType::Ray,
                 Character::Player => unreachable!(),
             }
+        })
+        .insert_bundle(SpriteSheetBundle {
+            sprite: TextureAtlasSprite {
+                index: 0,
+                .. Default::default()
+            },
+            texture_atlas: character_sprites.idle.clone(),
+            transform: Transform {
+                translation: Vec3::new(163., 173., 2.),
+                scale: Vec3::ONE * (match character {
+                    Character::Boss => 3.,
+                    _ => 2.,
+                }),
+                .. Default::default()
+            },
+            .. Default::default()
         });
 
     // Spawn HP bar
@@ -199,20 +288,21 @@ fn respawn_current_enemy(
 
 fn enemy_attack(
     mut commands: Commands,
-    mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>, &CharacterSprites,
-                      &AttackType),
+    mut enemy: Query<(Entity, &Health, &mut Handle<TextureAtlas>, &mut TextureAtlasSprite,
+                      &CharacterSprites, &AttackType),
                      With<Enemy>>,
     mut attack_time_reader: EventReader<EnemyAttackTime>,
     sprites: Res<Sprites>,
     time: Res<Time>,
 ) {
-    for (entity, health, mut material, char_sprites, attack_type) in enemy.single_mut() {
+    for (entity, health, mut atlas, mut sprite, char_sprites, attack_type) in enemy.single_mut() {
         if health.current > 0 {
             if attack_time_reader.iter().next().is_some() {
                 commands.entity(entity).insert(AttackAnimation {
                     until: time.time_since_startup() + ATTACK_DURATION,
                 });
-                *material = char_sprites.attack.clone();
+                *atlas = char_sprites.attack.clone();
+                sprite.index = 0;
                 if attack_type.damage_type == DamageType::Magic {
                     commands.spawn()
                         .insert(DespawnAfter {
@@ -236,12 +326,14 @@ fn enemy_attack(
 fn attack_animation(
     mut commands: Commands,
     time: Res<Time>,
-    mut enemy: Query<(Entity, &mut Handle<ColorMaterial>, &AttackAnimation, &CharacterSprites),
+    mut enemy: Query<(Entity, &mut Handle<TextureAtlas>, &mut TextureAtlasSprite,
+                      &AttackAnimation, &CharacterSprites),
                      With<Enemy>>,
 ) {
-    for (entity, mut material, anim, sprites) in enemy.single_mut() {
+    for (entity, mut atlas, mut sprite, anim, sprites) in enemy.single_mut() {
         if time.time_since_startup() > anim.until {
-            *material = sprites.idle.clone();
+            *atlas = sprites.idle.clone();
+            sprite.index = 0;
             commands.entity(entity).remove::<AttackAnimation>();
         }
     }
@@ -250,16 +342,18 @@ fn attack_animation(
 fn update_enemy_hp(
     mut commands: Commands,
     mut hp_bar: Query<&mut Transform, With<HpBar>>,
-    mut enemy: Query<(Entity, &Health, &mut Handle<ColorMaterial>, &CharacterSprites),
+    mut enemy: Query<(Entity, &Health, &mut Handle<TextureAtlas>, &mut TextureAtlasSprite,
+                      &CharacterSprites),
                      With<Enemy>>,
     respawn_timer_query: Query<&RespawnTimer, With<Enemy>>,
     audio: Res<Audio>,
     sounds: Res<Sounds>,
     time: Res<Time>,
 ) {
-    for (enemy_entity, health, mut material, sprites) in enemy.single_mut() {
+    for (enemy_entity, health, mut atlas, mut sprite, sprites) in enemy.single_mut() {
         if health.current == 0 {
-            *material = sprites.dead.clone();
+            *atlas = sprites.death.clone();
+            sprite.index = 0;
             if !respawn_timer_query.single().is_ok() {
                 commands.entity(enemy_entity)
                     .insert(RespawnTimer {
@@ -298,16 +392,11 @@ fn respawn_timer(
     enemy_hp_bg_query: Query<Entity, With<HpBackground>>,
     enemy_hp_bar_query: Query<Entity, With<HpBar>>,
 ) {
-    let timer = respawn_query.single();
-    let timer = match timer.ok() {
-        Some(t) => {
-            t
+    if let Ok(timer) = respawn_query.single() {
+        if time.time_since_startup() > timer.at {
+            respawn_current_enemy(commands, sprites, enemy_query, enemy_hp_bg_query,
+                                  enemy_hp_bar_query);
         }
-        None => return,
-    };
-    if time.time_since_startup() > timer.at {
-        respawn_current_enemy(commands, sprites, enemy_query, enemy_hp_bg_query,
-                              enemy_hp_bar_query);
     }
 }
 

@@ -97,6 +97,15 @@ pub struct TextureAssets {
     #[asset(path = "sprites/lpc-medieval-fantasy-character/our_work/mage/die/05.png")]
     pub mage_dead: Handle<Texture>,
 
+    #[asset(path = "sprites/david_dawn/golem/idle.png")]
+    pub boss_idle: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/golem/flash_sheet.png")]
+    pub boss_attack_sheet: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/golem/death_sheet.png")]
+    pub boss_death_sheet: Handle<Texture>,
+    #[asset(path = "sprites/david_dawn/golem/godray_sheet.png")]
+    pub boss_ray_sheet: Handle<Texture>,
+
     #[asset(path = "sprites/lpc-medieval-fantasy-character/our_work/player/walk_up/00.png")]
     pub player_idle: Handle<Texture>,
     #[asset(path = "sprites/lpc-medieval-fantasy-character/our_work/player/bow_up/09.png")]

@@ -77,7 +77,7 @@ fn create_resources(
         magic_ball: materials.add(texture_assets.icon_magic.clone().into()),
         blood_splatter: texture_atlases.add(
             TextureAtlas::from_grid(texture_assets.blood_splatter.clone(),
-                                    Vec2::new(70., 51.), // Measure this
+                                    Vec2::new(70., 51.),
                                     6, // columns
                                     1  // rows
                                     )),
@@ -146,7 +146,8 @@ fn player_start_health() -> Health {
     Health {
         current: START_HP,
         max: START_HP,
-        vulnerable_to: vec![DamageType::Arrow, DamageType::Magic, DamageType::Sword],
+        vulnerable_to: vec![DamageType::Arrow, DamageType::Magic, DamageType::Ray,
+                            DamageType::Sword],
     }
 }
 
@@ -231,6 +232,7 @@ fn update_player_display(
                     DamageType::Arrow => sprites.attack_arrow.clone(),
                     DamageType::Sword => sprites.attack_sword.clone(),
                     DamageType::Magic => sprites.attack_magic.clone(),
+                    DamageType::Ray => unreachable!(),
                 }
             },
             _ => {
