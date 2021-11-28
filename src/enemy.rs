@@ -65,7 +65,7 @@ impl bevy::app::Plugin for Plugin {
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                     .with_system(enemy_attack.system())
-                    .with_system(attack_animation.system())
+                    .with_system(end_attack_animation.system())
                     .with_system(update_enemy_hp.system())
                     .with_system(enemy_was_attacked.system())
                     .with_system(respawn_timer.system())
@@ -355,27 +355,56 @@ fn enemy_attack(
                     max_index: atlases.get(atlas.clone())
                                       .map(|a| a.len() - 1).unwrap_or(0) as u32,
                 };
-                if attack_type.damage_type == DamageType::Magic {
-                    commands.spawn()
-                        .insert(DespawnAfter {
-                            after: time.time_since_startup() + Duration::from_millis(300),
-                        })
-                        .insert_bundle(SpriteBundle {
-                            material: sprites.magic_ball.clone(),
-                            transform: Transform {
-                                translation: Vec3::new(163., 223., 5.),
-                                scale: Vec3::ONE * 0.25,
+                match attack_type.damage_type {
+                    DamageType::Magic => {
+                        commands.spawn()
+                            .insert(DespawnAfter {
+                                after: time.time_since_startup() + Duration::from_millis(300),
+                            })
+                            .insert_bundle(SpriteBundle {
+                                material: sprites.magic_ball.clone(),
+                                transform: Transform {
+                                    translation: Vec3::new(163., 223., 5.),
+                                    scale: Vec3::ONE * 0.25,
+                                    .. Default::default()
+                                },
                                 .. Default::default()
-                            },
-                            .. Default::default()
-                        });
-                }
+                            });
+                    },
+                    DamageType::Ray => {
+                        commands.spawn()
+                            .insert(DespawnAfter {
+                                after: time.time_since_startup() + Duration::from_millis(400),
+                            })
+                            .insert_bundle(SpriteSheetBundle {
+                                sprite: TextureAtlasSprite {
+                                    index: 0,
+                                    .. Default::default()
+                                },
+                                texture_atlas: sprites.ray.clone(),
+                                transform: Transform {
+                                    translation: Vec3::new(163., 75., 5.),
+                                    scale: Vec3::ONE * 1.5,
+                                    .. Default::default()
+                                },
+                                .. Default::default()
+                            })
+                            .insert(AnimateSpriteSheet {
+                                frame_duration: Duration::from_millis(50),
+                                next_frame_time: time.time_since_startup()
+                                    + Duration::from_millis(50),
+                                max_index: atlases.get(sprites.ray.clone())
+                                    .map(|a| a.len() - 1).unwrap_or(0) as u32,
+                            });
+                    },
+                    _ => {},
+                };
             }
         }
     }
 }
 
-fn attack_animation(
+fn end_attack_animation(
     mut commands: Commands,
     time: Res<Time>,
     mut enemy: Query<(Entity, &mut Handle<TextureAtlas>, &mut TextureAtlasSprite,
@@ -410,6 +439,7 @@ fn update_enemy_hp(
 ) {
     for (enemy_entity, health, mut atlas, mut sprite, mut anim, character_sprites)
         in enemy.single_mut()
+    {
         if health.current == 0 {
             *atlas = character_sprites.death.clone();
             if !respawn_timer_query.single().is_ok() {
