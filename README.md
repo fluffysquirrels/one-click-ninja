@@ -31,9 +31,9 @@ The game on itch.io, where you can play the web build: <https://fluffysquirrels.
 
 Programming by Alex Helfet and Daniel Benjamin
 
-Art by David Dawn and from OpenGameArt.org
+Art by [David Dawn](https://david-dawn.itch.io/) and from [OpenGameArt.org](https://opengameart.org/)
 
-Music by David Dawn and [HYPERMUSIC](https://hyper-beam.itch.io/)
+Music by [David Dawn](https://david-dawn.itch.io/) and [HYPERMUSIC](https://hyper-beam.itch.io/)
 
 ## License
 
