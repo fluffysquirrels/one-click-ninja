@@ -29,7 +29,7 @@ The game on itch.io, where you can play the web build: <https://fluffysquirrels.
 
 ## Credits
 
-Programming by Alex Helfet and Daniel Benjamin
+Programming by [Alex Helfet](https://github.com/fluffysquirrels) and Daniel Benjamin
 
 Art by [David Dawn](https://david-dawn.itch.io/) and from [OpenGameArt.org](https://opengameart.org/)
 
