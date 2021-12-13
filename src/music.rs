@@ -71,20 +71,23 @@ fn start_music(
 
 fn on_update(
     mut music_time_writer: EventWriter<MusicTime>,
+    audio: Res<Audio>,
     music_instance: Res<MusicInstance>,
 ) {
     let track = music_instance.track.clone();
-    let pos = music_instance.instance.position();
-    let beat_secs = 60. / track.bpm;
-    let bar_secs = beat_secs * 4.;
-    let bar_offset = (pos - track.start_offset) % bar_secs;
-    let beat_in_bar = (bar_offset / bar_secs) * 4.;
-    let time = MusicTime {
-        loop_position: pos,
-        beat_in_bar: beat_in_bar,
-    };
-    log::trace!("MusicTime: {:?}", time);
-    music_time_writer.send(time);
+    let pos = audio.state(music_instance.instance.clone()).position();
+    if let Some(pos) = pos {
+        let beat_secs = 60. / track.bpm;
+        let bar_secs = beat_secs * 4.;
+        let bar_offset = (pos - track.start_offset) % bar_secs;
+        let beat_in_bar = (bar_offset / bar_secs) * 4.;
+        let time = MusicTime {
+            loop_position: pos,
+            beat_in_bar: beat_in_bar,
+        };
+        log::trace!("MusicTime: {:?}", time);
+        music_time_writer.send(time);
+    }
 }
 
 fn stop_music(
