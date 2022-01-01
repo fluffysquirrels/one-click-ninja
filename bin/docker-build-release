@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -eux;
+
+# Compute script directory.
+readonly repo_dir="$( cd $(dirname ${BASH_SOURCE})/..; pwd )";
+
+cd "${repo_dir}";
+
+sudo docker run \
+     --rm \
+     --mount type=bind,source="${repo_dir}",destination="/ocn" \
+     --workdir "/ocn" \
+     ocn-builder:latest \
+     bash -c "source ~/.cargo/env; bin/build-release";
